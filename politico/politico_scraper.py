@@ -1,84 +1,116 @@
 from bs4 import BeautifulSoup
 import urllib.request
 from collections import defaultdict
-
+import pandas as pd
 
 
 def parse_house_data(datadict, years, states):
     votesdict = defaultdict(dict)
     for year in years:
-        votesdict[year] = {}
+        votesdict[year] = defaultdict(dict)
 
         for state in states:
-            votesdict[year][state] = {}
+            votesdict[year][state] = defaultdict(dict)
 
             data = datadict[year][state]
-            for district in data.find_all("article", {"class": "results-group"})
 
-                distnum = district.find_all("fips-ID").attrs['data-fips']
+            #loop through each district in the BS object and add district ID and candidates'
+            #party, names, and vote counts
 
-                dem = district.find("class" : "type-democrat").next_sibling
-                cand_name = dem.find(scope="row" class="results-name">)
-                numvotes = cand_name.find(class="results-popular")
+            for i, district in enumerate(data.find_all("article", {"class": "results-group"})):
 
-                votesdict[year][state][district][candidate][name] = candname
-                votesdict[year][state][district][candidate][votes] = numvotes
-                votesdict[year][state][district][candidate][party] = 'D'
+                #distnum = district.find("fips-ID").attrs['data-fips']
+                distnum = i
+                votesdict[year][state][distnum] = defaultdict(dict)
 
-                rep = district.find(<tr class = "type-democrat")
-                cand_name = rep.find(<th scope="row" class="results-name">)
-                numvotes = cand_name.find(td class="results-popular")
+                #Democratic candidate
 
-                votesdict[year][state][district][candidate][name] = candname
-                votesdict[year][state][district][candidate][votes] = numvotes
-                votesdict[year][state][district][candidate][party] = 'R'
+                democrat = district.find(class_="type-democrat")
 
-    return votesdict
+                demcount = democrat.find(class_="results-popular").get_text()
+                demname = democrat.find(class_="results-name").get_text()
 
-    '''
-    Votes = {'2016': {'colorado': {1st:
-                   {'name': 'D. DeGette', 'votes': '174756', 'party': 'D'},
-                   {'name': 'M. Walsh'}} ...
-    '''
+                if demname[-4:] == ' (i)':
+                    votesdict[year][state][distnum]['dem']['incumbent'] = True
+                    demname = demname[:-4]
+                else:
+                    votesdict[year][state][distnum]['dem']['incumbent'] = False
+
+                if demname[:9] == 'D Winner ':
+                     demname = demname[9:]
+                else:
+                     demname = demname[2:]
+
+                votesdict[year][state][distnum]['dem']['cand_name'] = demname
+                votesdict[year][state][distnum]['dem']['vote_count'] = int(demcount.replace(',',''))
+
+                #Republican candidate
+
+                republican = district.find(class_="type-republican")
+
+                repcount = republican.find(class_="results-popular").get_text()
+                repname = republican.find(class_="results-name").get_text()
+
+                if repname[-4:] == ' (i)':
+                    votesdict[year][state][distnum]['rep']['incumbent'] = True
+                    repname = repname[:-4]
+                else:
+                    votesdict[year][state][distnum]['rep']['incumbent'] = False
+
+                if repname[:9] == 'R Winner ':
+                     repname = repname[9:]
+                else:
+                     repname = repname[2:]
+
+                votesdict[year][state][distnum]['rep']['cand_name'] = repname
+                votesdict[year][state][distnum]['rep']['vote_count'] = int(repcount.replace(',',''))
+
+
+                votes_df= pd.DataFrame.from_dict({(i,j,k,l): votesdict[i][j][k][l]
+                    for i in votesdict.keys()
+                    for j in votesdict[i].keys()
+                    for k in votesdict[i][j].keys()
+                    for l in votesdict[i][j][k].keys()},
+                    orient='index')
+
+                votes_df.reset_index(inplace=True)
+                votes_df.rename(index=str, columns={"level_0":"year", "level_1": "state", "level_3":"party"}, inplace=True)
+
+    return votes_df
 
 
 def parse_senate_data(dict):
     counties = test.find_all("article", {"class": "results-group"})
-
     county_strings = []
 
     for county in range(1, len(counties)):
         county_strings.append(str(counties[county].find_all('h4')))
-
         county_names = []
 
         for name in county_names:
             county_names.append((name.split('>')[1]).split('<')[0])
 
 
-def get_house_data(states, years):
+def get_house_data(years, states):
 
     datadict = defaultdict(dict)
 
     for year in years:
-
         datadict[year] = {}
 
         for state in states:
 
             site = "https://www.politico.com/" + str(year) + "-election/results/map/house/"+state+"/"
-
+            #print (site)
             req= urllib.request.Request(site)
             page = urllib.request.urlopen(req)
-
             soup = BeautifulSoup(page, 'lxml')
-
             datadict[year][state] = soup
 
+    print ("Done with getting data")
     return datadict
 
-def convert_to_df(dict):
-    pass
+
 
 def get_cand_id(df):
     # match the cand id from somewhere else onto candidate names
@@ -87,12 +119,24 @@ def get_cand_id(df):
 
 if __name__ == "__main__":
 
-    states = ['colorado']
-    years = ['2016']
+    states = ['alabama','alaska','arizona','arkansas','california','colorado',
+         'connecticut','delaware','florida','georgia','hawaii','idaho',
+         'illinois','indiana','iowa','kansas','kentucky','louisiana',
+         'maine', 'maryland','massachusetts','michigan','minnesota',
+         'mississippi', 'missouri','montana','nebraska','nevada',
+         'new-hampshire','new-jersey','new-mexico','new-york',
+         'north-carolina','north-dakota','ohio',
+         'oklahoma','oregon','pennsylvania','rhode-island',
+         'south-carolina','south-dakota','tennessee','texas','utah',
+         'vermont','virginia','washington','west-virginia',
+         'wisconsin','wyoming']
 
-    datadict = get_house_data(states, years)
+    years = [2014]
 
-    #votesdict = parse_house_data(datadict, states, years)
+    datadict = get_house_data(years, states)
+
+    #votes_df = parse_house_data(datadict, years, states)
+
 
     #votes_df = convert_to_df(votesdict)
 
