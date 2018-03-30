@@ -201,5 +201,4 @@ if __name__ == "__main__":
     }
 
     votes_df['state_abbr'] =votes_df['state'].map(state_dict)
-
-    #get_cand_id(votes_df)
+    votes_df['LASTNAME'] = votes_df.cand_name.str.upper().str.split(" ").str[-1]
