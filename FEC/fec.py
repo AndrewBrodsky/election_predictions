@@ -6,27 +6,53 @@ import time
 
 
 def read_indiv():
-    #processes about 50,000 records/second
-    #more than 20 million records
+    #takes about 210 seconds to read
+    #20,353,316 records
+
+    num_records = 40100100
 
     headers = pd.read_csv('indiv16/indiv_header_file.csv')
     datafile = 'indiv16/itcont.txt'
     # headers = pd.read_csv('pas216/pas2.headers.csv')
 
+    dtypes={'CMTE_ID'           : object,
+            'AMNDT_IND'         : object,
+            'RPT_TP'            : object,
+            'TRANSACTION_PGI'   : object,
+            'IMAGE_NUM'         : np.int64,
+            'TRANSACTION_TP'    : object,
+            'ENTITY_TP'         : object,
+            'NAME'              : object,
+            'CITY'              : object,
+            'STATE'             : object,
+            'ZIP_CODE'          : object,
+            'EMPLOYER'          : object,
+            'OCCUPATION'        : object,
+            'TRANSACTION_DT'    : object,
+            'TRANSACTION_AMT'   : np.int64,
+            'OTHER_ID'          : object,
+            'TRAN_ID'           : object,
+            'FILE_NUM'          : np.int64,
+            'MEMO_CD'           : object,
+            'MEMO_TEXT'         : object,
+            'SUB_ID'            : np.int64
+            }
+
     tic = time.time()
-    indiv = pd.read_csv(datafile, sep = '|', error_bad_lines=False, names = headers, nrows=2000000 )
+    indiv = pd.read_csv(datafile, sep = '|', error_bad_lines=False, names = headers, nrows=num_records )
     indiv.fillna(value=0, inplace=True)
     indiv.ZIP_CODE = indiv.ZIP_CODE.astype(str)
     indiv.TRANSACTION_DT = indiv.TRANSACTION_DT.astype(str)
 
-    for col in headers:
-        dfsums = indiv.groupby(col)['TRANSACTION_AMT'].sum().astype(int)
-        top50 = dfsums.sort_values(axis=0, ascending=False)[:min(50, dfsums.shape[0])]
+    #for col in headers:
+    #    dfsums = indiv.groupby(col)['TRANSACTION_AMT'].sum().astype(int)
+    #    top50 = dfsums.sort_values(axis=0, ascending=False)[:min(50, dfsums.shape[0])]
 
 
     toc = time.time()
     print ("Elapsed time: ", str(round(toc-tic,1)), "seconds")
-    print ("Total records: {:,}".format(indiv.shape[0]))
+    print ("Total records: {:,}".format(num_records))
+    print ("Reading time was about {:,.0f} records per second".format(num_records/(toc-tic)))
 
     return indiv
 
@@ -68,9 +94,13 @@ if __name__ == "__main__":
     transactions['CMTE_ID'] = transactions.index
 
     trans_w_candID = pd.merge(transactions, ccl, on = 'CMTE_ID', how='left')
-    trans_by_candID = trans_w_candID.groupby('CAND_ID')['TOTAL_TRANS'].sum().astype(int)
-    trans_cand = pd.merge(trans_candID, cn, on = 'CAND_ID', how='left')
+    #trans_by_candID = trans_w_candID.groupby('CAND_ID')['TOTAL_TRANS'].sum().astype(int)
 
+    trans_by_candID = trans_w_candID.groupby('CAND_ID')['TOTAL_TRANS', 'TRANS_BY_INDIV', 'TRANS_BY_CMTE'].sum().astype(int)
+    trans_by_candID['CAND_ID'] = trans_by_candID.index
+    trans_cand = pd.merge(trans_by_candID, cn, on = 'CAND_ID', how='left')
+    trans_cand.rename(columns={'CAND_ST': 'state', 'CAND_OFFICE_DISTRICT': 'district'}, inplace=True)
 
-
-    cmte_trans = ccl.set_index('CMTE_ID').join(transactions)
+    #need to create new columns instead:
+    trans_cand.ln = trans_cand.CAND_NAME.str.split(" ").str[0]
+    trans_cand.ln.str.replace(",","")

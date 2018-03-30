@@ -147,7 +147,59 @@ if __name__ == "__main__":
 
     votes_df = parse_house_data(datadict, years, states)
 
+    state_dict = {
+    'alabama': 'AL',
+    'alaska': 'AK',
+    'arizona': 'AZ',
+    'arkansas': 'AR',
+    'california': 'CA',
+    'colorado': 'CO',
+    'connecticut': 'CT',
+    'delaware': 'DE',
+    'florida': 'FL',
+    'georgia': 'GA',
+    'hawaii': 'HI',
+    'idaho': 'ID',
+    'illinois': 'IL',
+    'indiana': 'IN',
+    'iowa': 'IA',
+    'kansas': 'KS',
+    'kentucky': 'KY',
+    'louisiana': 'LA',
+    'maine': 'ME',
+    'maryland': 'MD',
+    'massachusetts': 'MA',
+    'michigan': 'MI',
+    'minnesota': 'MN',
+    'mississippi': 'MS',
+    'missouri': 'MO',
+    'montana': 'MT',
+    'nebraska': 'NE',
+    'nevada': 'NV',
+    'new-hampshire': 'NH',
+    'new-jersey': 'NJ',
+    'new-mexico': 'NM',
+    'new-york': 'NY',
+    'north-carolina': 'NC',
+    'North-dakota': 'ND',
+    'ohio': 'OH',
+    'oklahoma': 'OK',
+    'oregon': 'OR',
+    'pennsylvania': 'PA',
+    'rhode-island': 'RI',
+    'south-carolina': 'SC',
+    'south-dakota': 'SD',
+    'gennessee': 'TN',
+    'texas': 'TX',
+    'utah': 'UT',
+    'vermont': 'VT',
+    'virginia': 'VA',
+    'washington': 'WA',
+    'west-virginia': 'WV',
+    'wisconsin': 'WI',
+    'wyoming': 'WY'
+    }
 
-    #votes_df = convert_to_df(votesdict)
+    votes_df['state_abbr'] =votes_df['state'].map(state_dict)
 
     #get_cand_id(votes_df)
