@@ -8,9 +8,65 @@ pd.set_option('display.expand_frame_repr', False)
 pd.set_option('display.precision', 2)
 pd.options.display.float_format = '{:,.0f}'.format
 
-censusdata.search('acs5', '2015', 'label', 'poverty')
+#censusdata.search('acs5', '2015', 'label', 'poverty')
 
-first_tables = ['B16009_001E']
+table_dict = {
+    'Total Pop.': 'B01003_001E',
+    'Median Age' : 'B01002_001E',
+    'White' : 'B02001_002E',
+    'Black' : 'B02001_003E',
+    'Amer Ind' : 'B02001_004E',
+    'Asian' : 'B02001_005E',
+    'Pacific' : 'B02001_006E',
+    '2+ Races' : 'B02001_008E',
+    'Not U.S. Citizen' : 'B05001_006E',
+    'U.S. Citizen by Naturalization' : 'B05001_005E',
+    'Born in state of residence' : 'B05002_003E',
+    'Born in U.S.' : 'B05012_001E',
+    'Total Language Universe' : 'B06007_001E',
+    'Speak only English' : 'B06007_002E',
+    'Speak Spanish' : 'B06007_003E',
+    'Less than HS Grad' : 'B06009_002E',
+    'HS grad' : 'B06009_003E',
+    'Some college' : 'B06009_004E',
+    'Bachelors degree' : 'B06009_011E',
+    'Grad degree' : 'B06009_012E',
+    'Income universe' : 'B06010_001E',
+    'No income' : 'B06010_002E',
+    'Median income' : 'B06011_001E',
+    'Poverty Universe' : 'B06012_001E',
+    'Below 100 pct FPL' : 'B06012_002E',
+    '100-149 FPL' : 'B06012_003E'
+    }
+
+bad_tables = {'White Male Under 18' : 'C01001A_003E',
+'White Male 18-64': 'C01001A_004E',
+'White Male 65+' : 'C01001A_005E',
+'White Female Under 18' : 'C01001A_007E',
+'White Female 18-64' : 'C01001A_008E',
+'White Female 65+' : 'C01001A_009E',
+'Black Male Under 18' : 'C01001B_003E',
+'Black Male 18-64': 'C01001B_004E',
+'Black Male 65+' : 'C01001B_005E',
+'Black Female Under 18' : 'C01001B_007E',
+'Black Female 18-64' : 'C01001B_008E',
+'Black Female 65+' : 'C01001B_009E',
+'Hipsanic Male Under 18' : 'C01001I_003E',
+'Hispanic Male 18-64': 'C01001I_004E',
+'Hispanic Male 65+' : 'C01001I_005E',
+'Hispanic Female Under 18' : 'C01001I_007E',
+'Hispanic Female 18-64' : 'C01001I_008E',
+'Hispanic Female 65+' : 'C01001I_009E',
+'Reporting Ancestry' : 'C04004_001E',
+'American Ancestry' : 'C04004_002E'
+}
+
+tables = []
+
+for k, v in table_dict.items():
+   tables.append(v)
+
+#tables = ['B05012_001E']
 
 #Not included in the first round:
 #Place of Birth
@@ -21,8 +77,22 @@ first_tables = ['B16009_001E']
 
 #censusdata.printtable(censusdata.censustable('acs5', '2015', 'B16009'))
 
-dists = censusdata.download('acs5', '2015',
-          censusdata.censusgeo([('congressional district', '*')]), first_tables)
+dists = pd.DataFrame
+
+state_df=[]
+
+state_FIPS = [1, 2, 4, 5, 6, 8, 9, 10, 12, 13,
+              15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+              25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
+              35, 36, 37, 38, 39, 40, 41, 42, 44, 45,
+              46, 47, 48, 49, 50, 51, 53, 54, 55, 56]
+
+for st in state_FIPS:
+    state_df.append(censusdata.download('acs5', '2015',
+          censusdata.censusgeo([('state', str(st)), ('congressional district', '*')]), tables))
+
+dists = pd.concat(state_df[x] for x in range(50))
+#dists = state_df
 #dists.describe()
 
 dists['index1'] = dists.index.astype(str)
