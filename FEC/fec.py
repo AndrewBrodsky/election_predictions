@@ -101,6 +101,4 @@ if __name__ == "__main__":
     trans_cand = pd.merge(trans_by_candID, cn, on = 'CAND_ID', how='left')
     trans_cand.rename(columns={'CAND_ST': 'state', 'CAND_OFFICE_DISTRICT': 'district'}, inplace=True)
 
-    #need to create new columns instead:
-    trans_cand.ln = trans_cand.CAND_NAME.str.split(" ").str[0]
-    trans_cand.ln.str.replace(",","")
+    trans_cand['LAST_NAME'] = trans_cand.CAND_NAME.str.split(" ").str[0].str.replace(",","")
