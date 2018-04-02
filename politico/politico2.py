@@ -20,73 +20,62 @@ def parse_house_data(datadict, years, states):
             for i, district in enumerate(data.find_all("article", {"class": "results-group"})):
 
                 #distnum = district.find("fips-ID").attrs['data-fips']
+
                 distnum = i+1
                 votesdict[year][state][distnum] = defaultdict(dict)
 
-                #Democratic candidate
-
                 democrat = district.find(class_="type-democrat")
 
+                party_letter = 'D'
+                name, vote_count,incumbent = make_candidate(district, 'type-democrat', party_letter)
+                votesdict[year][state][distnum][party_letter]['cand_name'] = name
+                votesdict[year][state][distnum][party_letter]['vote_count'] = vote_count
+                votesdict[year][state][distnum][party_letter]['incumbent'] = incumbent
 
-                if democrat is not None:
-
-                    if democrat.find(class_="results-popular") is not None:
-
-                        demcount = democrat.find(class_="results-popular").get_text()
-                        demname = democrat.find(class_="results-name").get_text()
-
-                        if demname[-4:] == ' (i)':
-                            votesdict[year][state][distnum]['dem']['incumbent'] = True
-                            demname = demname[:-4]
-                        else:
-                            votesdict[year][state][distnum]['dem']['incumbent'] = False
-
-                        if demname[:9] == 'D Winner ':
-                             demname = demname[9:]
-                        else:
-                             demname = demname[2:]
-
-                        votesdict[year][state][distnum]['dem']['cand_name'] = demname
-                        votesdict[year][state][distnum]['dem']['vote_count'] = int(demcount.replace(',',''))
-
-
-                #Republican candidate
-
-                republican = district.find(class_="type-republican")
-
-                if republican is not None:
-
-                    if republican.find(class_="results-popular") is not None:
-
-                        repcount = republican.find(class_="results-popular").get_text()
-                        repname = republican.find(class_="results-name").get_text()
-
-                        if repname[-4:] == ' (i)':
-                            votesdict[year][state][distnum]['rep']['incumbent'] = True
-                            repname = repname[:-4]
-                        else:
-                            votesdict[year][state][distnum]['rep']['incumbent'] = False
-
-                        if repname[:9] == 'R Winner ':
-                             repname = repname[9:]
-                        else:
-                             repname = repname[2:]
-
-                        votesdict[year][state][distnum]['rep']['cand_name'] = repname
-                        votesdict[year][state][distnum]['rep']['vote_count'] = int(repcount.replace(',',''))
-
-
-                        votes_df= pd.DataFrame.from_dict({(i,j,k,l): votesdict[i][j][k][l]
-                            for i in votesdict.keys()
-                            for j in votesdict[i].keys()
-                            for k in votesdict[i][j].keys()
-                            for l in votesdict[i][j][k].keys()},
-                            orient='index')
+    votes_df= pd.DataFrame.from_dict({(i,j,k,l): votesdict[i][j][k][l]
+         for i in votesdict.keys()
+         for j in votesdict[i].keys()
+         for k in votesdict[i][j].keys()
+         for l in votesdict[i][j][k].keys()},
+         orient='index')
 
     votes_df.reset_index(inplace=True)
     votes_df.rename(index=str, columns={"level_0":"year", "level_1": "state", "level_2": "district", "level_3":"party"}, inplace=True)
 
     return votes_df
+
+
+def make_candidate(district, class_type, party_abbr):
+
+    party = district.find(class_=class_type)
+
+    if party is not None:
+
+        if party.find(class_="results-popular") is not None:
+
+            count = party.find(class_="results-popular").get_text()
+            name = party.find(class_="results-name").get_text()
+
+            if name[-4:] == ' (i)':
+                incumbent = True
+                name = name[:-4]
+            else:
+                incumbent = False
+
+            if name[:9] == party_abbr + ' Winner ':
+                 name = name[9:]
+            else:
+                 name = name[2:]
+
+            vote_count = int(count.replace(',',''))
+
+            return name, vote_count, incumbent
+
+        else:
+            return None, None, None
+
+    else:
+        return None, None, None
 
 
 def parse_senate_data(dict):
