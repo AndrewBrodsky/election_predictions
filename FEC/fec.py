@@ -9,7 +9,7 @@ def read_indiv():
     #takes about 210 seconds to read
     #20,353,316 records
 
-    num_records = 40100100
+    num_records = 100000
 
     headers = pd.read_csv('indiv16/indiv_header_file.csv')
     datafile = 'indiv16/itcont.txt'
@@ -50,55 +50,58 @@ def read_indiv():
 
 
     toc = time.time()
-    print ("Elapsed time: ", str(round(toc-tic,1)), "seconds")
-    print ("Total records: {:,}".format(num_records))
-    print ("Reading time was about {:,.0f} records per second".format(num_records/(toc-tic)))
+    #print ("Elapsed time: ", str(round(toc-tic,1)), "seconds")
+    print ("Total records: {:,}".format(indiv.shape[0]))
+    #print ("Reading time was about {:,.0f} records per second".format(num_records/(toc-tic)))
 
     return indiv
 
-def read_pas2():
-    headers = pd.read_csv('pas216/pas2.headers.csv')
-    datafile = 'pas216/itpas2.txt'
-    pas2 = pd.read_csv(datafile, sep = '|', error_bad_lines=False, names = headers)
-    return pas2
-
-def read_ccl():
-    headers = pd.read_csv('ccl/ccl_header_file.csv')
-    datafile = 'ccl/ccl.txt'
-    ccl = pd.read_csv(datafile, sep = '|', error_bad_lines=False, names = headers)
-    return ccl
-
-def read_cn():
-    headers = pd.read_csv('cn/cn_header_file.csv')
-    datafile = 'cn/cn.txt'
-    cn = pd.read_csv(datafile, sep = '|', error_bad_lines=False, names = headers)
-    return cn
+def read_file(header_file, data_file):
+    headers = pd.read_csv(header_file)
+    file = pd.read_csv(data_file, sep = '|', error_bad_lines = False, names = headers)
+    return file
 
 
-if __name__ == "__main__":
-    indiv = read_indiv()
-    pas2 = read_pas2()
-    ccl = read_ccl()
-    cn = read_cn()
+def group_by_trans(filename, varname):
+    file_trans = filename.groupby('CMTE_ID')['TRANSACTION_AMT'].sum().astype(int)
+    file_trans.rename(varname,inplace = True)
 
-    pd.set_option('display.precision', 2)
-    pd.options.display.float_format = '{:,.0f}'.format
+    return file_trans
 
-    pas2_trans = pas2.groupby('CMTE_ID')['TRANSACTION_AMT'].sum().astype(int)
-    pas2_trans.rename("TRANS_BY_CMTE",inplace = True)
-    indiv_trans = indiv.groupby('CMTE_ID')['TRANSACTION_AMT'].sum().astype(int)
-    indiv_trans.rename("TRANS_BY_INDIV", inplace=True)
+
+def make_transactions(indiv_trans, pas2_trans):
 
     transactions = pd.concat([indiv_trans,pas2_trans], axis=1)
     transactions['TOTAL_TRANS'] = transactions['TRANS_BY_INDIV'].fillna(0) + transactions['TRANS_BY_CMTE'].fillna(0)
     transactions['CMTE_ID'] = transactions.index
 
-    trans_w_candID = pd.merge(transactions, ccl, on = 'CMTE_ID', how='left')
-    #trans_by_candID = trans_w_candID.groupby('CAND_ID')['TOTAL_TRANS'].sum().astype(int)
+    return transactions
 
+
+def make_fec(transactions, ccl, cn):
+
+    trans_w_candID = pd.merge(transactions, ccl, on = 'CMTE_ID', how='left')
     trans_by_candID = trans_w_candID.groupby('CAND_ID')['TOTAL_TRANS', 'TRANS_BY_INDIV', 'TRANS_BY_CMTE'].sum().astype(int)
     trans_by_candID['CAND_ID'] = trans_by_candID.index
     trans_cand = pd.merge(trans_by_candID, cn, on = 'CAND_ID', how='left')
     trans_cand.rename(columns={'CAND_ST': 'state', 'CAND_OFFICE_DISTRICT': 'district'}, inplace=True)
-
     trans_cand['LAST_NAME'] = trans_cand.CAND_NAME.str.split(" ").str[0].str.replace(",","")
+
+    return trans_cand
+
+if __name__ == "__main__":
+
+    pd.set_option('display.precision', 2)
+    pd.options.display.float_format = '{:,.0f}'.format
+
+    indiv = read_indiv()
+    pas2 = read_file('pas216/pas2.headers.csv', 'pas216/itpas2.txt')
+    ccl = read_file('ccl/ccl_header_file.csv', 'ccl/ccl.txt')
+    cn = read_file('cn/cn_header_file.csv', 'cn/cn.txt')
+
+    pas2_trans = group_by_trans(pas2, 'TRANS_BY_CMTE')
+    indiv_trans = group_by_trans(indiv, 'TRANS_BY_INDIV')
+
+    transactions = make_transactions(indiv_trans, pas2_trans)
+
+    fec = make_fec(transactions, ccl, cn)
