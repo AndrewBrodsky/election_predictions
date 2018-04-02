@@ -9,11 +9,14 @@ from fec import get_fec
 from acs import get_acs
 from open_secrets import make_dark_house
 
+import api_keys
+census_key = api_keys.census_api
+
 def join_files(politico, fec, acs, dark_house):
     alldata1 = pd.merge(politico, fec, left_on = ['year', 'STATE_ABBR', 'district', 'LAST_NAME'],
               right_on = ['CAND_ELECTION_YR', 'STATE', 'DISTRICT', 'LAST_NAME'], how='left')
 
-    alldata2 = pd.merge(alldata, acs, left_on = ['STATE_ABBR', 'district'],
+    alldata2 = pd.merge(alldata1, acs, left_on = ['STATE_ABBR', 'district'],
               right_on = ['STATE_ABBR', 'DISTRICT'], how = 'left')
 
     alldata3 = pd.merge(alldata2, dark_house, left_on = ['STATE_ABBR', 'DISTRICT_x', 'LAST_NAME', 'year'],
@@ -29,7 +32,7 @@ if __name__ == "__main__":
     print ("Politico data imported")
     fec = get_fec()
     print ("FEC data imported")
-    acs = get_acs()
+    acs = get_acs(census_key)
     print ("ACS data imported")
     dark_house = make_dark_house()
     print ("Dark Money data imported")
@@ -50,4 +53,9 @@ if __name__ == "__main__":
        'B06012_002E', 'B06012_003E']
 
     X = alldata[features]
-    y = alldata[vote_count]
+    y = alldata['vote_count']
+
+    X_train, X_test, y_train, y_test = train_test_split(X,y)
+
+    pipeline = make_pipeline (RFReg, GBReg)
+    pipeline.fit(X_train, y_train)
