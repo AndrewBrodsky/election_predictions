@@ -1,18 +1,41 @@
 import pandas as pd
-from sklearn.linear_model import LogisticRegression as LogReg
-from sklearn.ensemble import (RandomForestRegressor as RFReg, GradientBoostingRegressor as GBReg)
+import pickle
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import (RandomForestRegressor, GradientBoostingRegressor)
+from sklearn.neural_network import MLPRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import make_pipeline
+
 
 from politico import get_politico
 from fec import get_fec
 from acs import get_acs
 from open_secrets import make_dark_house
-
 import api_keys
-census_key = api_keys.census_api
+
+
+def import_data():
+
+    politico = get_politico()
+    print ("Politico data imported")
+    fec = get_fec()
+    print ("FEC data imported")
+    acs = get_acs(census_key)
+    print ("ACS data imported")
+    dark_house = make_dark_house()
+    print ("Dark Money data imported")
+
+    #eventually move these to subfiles and rename dark_house.Total to DarkTotal
+    #acs['DISTRICT'] = pd.to_numeric(acs['DISTRICT'], errors = 'coerce')
+    #dark_house['DISTRICT'] = pd.to_numeric(dark_house['DISTRICT'], errors = 'coerce')
+
+    alldata = join_files(politico, fec, acs, dark_house)
+
+    return alldata
+
 
 def join_files(politico, fec, acs, dark_house):
+
     alldata1 = pd.merge(politico, fec, left_on = ['year', 'STATE_ABBR', 'district', 'LAST_NAME'],
               right_on = ['CAND_ELECTION_YR', 'STATE', 'DISTRICT', 'LAST_NAME'], how='left')
 
@@ -28,34 +51,38 @@ def join_files(politico, fec, acs, dark_house):
 
 if __name__ == "__main__":
 
-    politico = get_politico()
-    print ("Politico data imported")
-    fec = get_fec()
-    print ("FEC data imported")
-    acs = get_acs(census_key)
-    print ("ACS data imported")
-    dark_house = make_dark_house()
-    print ("Dark Money data imported")
+    beforepickle = True
+    afterpickle = True
 
-    #eventually move this to subfiles and rename dark_house.Total to DarkTotal
-    acs['DISTRICT'] = pd.to_numeric(acs['DISTRICT'], errors = 'coerce')
-    dark_house['DISTRICT'] = pd.to_numeric(dark_house['DISTRICT'], errors = 'coerce')
+    if beforepickle == False:
+        census_key = api_keys.census_api
+        alldata = import_data()
+        pickle.dump( alldata, open( "save.p", "wb" ) )
 
-    alldata = join_files(politico, fec, acs, dark_house)
+    if afterpickle == True:
+        alldata = pickle.load( open( "save.p", "rb" ) )
 
-    features = ['year', 'party', 'incumbent', 'TRANS_BY_INDIV', 'TRANS_BY_CMTE',
-       'B01003_001E', 'B01002_001E', 'B02001_002E', 'B02001_003E',
-       'B02001_004E', 'B02001_005E', 'B02001_006E', 'B02001_008E',
-       'B05001_006E', 'B05001_005E', 'B05002_003E', 'B05012_001E',
-       'B06007_001E', 'B06007_002E', 'B06007_003E', 'B06009_002E',
-       'B06009_003E', 'B06009_004E', 'B06009_011E', 'B06009_012E',
-       'B06010_001E', 'B06010_002E', 'B06011_001E', 'B06012_001E',
-       'B06012_002E', 'B06012_003E']
+        features = ['YEAR2016', 'DEM', 'incumbent', 'TRANS_BY_INDIV', 'TRANS_BY_CMTE',
+           'B01003_001E', 'B01002_001E', 'B02001_002E', 'B02001_003E',
+           'B02001_004E', 'B02001_005E', 'B02001_006E', 'B02001_008E',
+           'B05001_006E', 'B05001_005E', 'B05002_003E', 'B05012_001E',
+           'B06007_001E', 'B06007_002E', 'B06007_003E', 'B06009_002E',
+           'B06009_003E', 'B06009_004E', 'B06009_011E', 'B06009_012E',
+           'B06010_001E', 'B06010_002E', 'B06011_001E', 'B06012_001E',
+           'B06012_002E', 'B06012_003E']
 
-    X = alldata[features]
-    y = alldata['vote_count']
+        X = alldata[features]
+        y = alldata['vote_count']
+        X_train, X_test, y_train, y_test = train_test_split(X,y)
 
-    X_train, X_test, y_train, y_test = train_test_split(X,y)
+        Linear_model = LinearRegression()
+        RF_model = RandomForestRegressor()
+        GBR_model = GradientBoostingRegressor()
+        MLP_model = MLPRegressor()
 
-    pipeline = make_pipeline (RFReg, GBReg)
-    pipeline.fit(X_train, y_train)
+        Linear_model.fit(X_train, y_train)
+        Linear_model.predict(X_test)
+
+        # pipeline = make_pipeline (Linear_model, RF_model)
+        # pipeline.fit(X_train, y_train)
+        # y_pred = pipeline.predict_proba(X_test)

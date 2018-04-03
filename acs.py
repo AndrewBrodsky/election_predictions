@@ -155,6 +155,7 @@ def make_acs(dists, state_abbrev):
 
     dists.STATE = dists.STATE.str.strip()
     dists['STATE_ABBR'] = dists['STATE'].map(state_abbrev)
+    dists['DISTRICT'] = pd.to_numeric(dists['DISTRICT'], errors = 'coerce')
 
     return dists
 

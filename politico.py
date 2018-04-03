@@ -195,8 +195,10 @@ def get_politico():
     'wyoming': 'WY'
     }
 
-    politico['STATE_ABBR'] =politico['state'].map(state_dict)
+    politico['STATE_ABBR'] = politico['state'].map(state_dict)
     politico['LAST_NAME'] = politico.cand_name.str.upper().str.split(" ").str[-1]
+    politico['DEM'] = politico['party'] == 'dem'
+    politico['YEAR2016'] = politico['year'] == 2016
 
     return politico
 
