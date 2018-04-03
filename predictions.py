@@ -82,7 +82,7 @@ if __name__ == "__main__":
     if afterpickle == True:
         alldata = pickle.load( open( "save.p", "rb" ) )
 
-        make_model_data(alldata)
+        model_data = make_model_data(alldata)
 
         X = model_data.drop('vote_count', axis=1)
         y = model_data['vote_count']
@@ -93,14 +93,18 @@ if __name__ == "__main__":
         GBR_model = GradientBoostingRegressor()
         MLP_model = MLPRegressor()
 
-        linear_model.fit(X_train, y_train)
-        lin_pred = Linear_model.predict(X_test)
+        # linear_model.fit(X_train, y_train)
+        # lin_pred = Linear_model.predict(X_test)
+        #
+        # RF_model.fit(X_train, y_train)
+        # RF_model.score
+        #
+        # GBR_model.fit(X_train, y_train)
 
-        RF_model.fit(X_train, y_train)
-        RF_model.score
-
-        GBR_model.fit(X_train, y_train)
-
-        pipeline = make_pipeline (Linear_model, RF_model)
+        pipeline = make_pipeline(linear_model, RF_model)
         pipeline.fit(X_train, y_train)
-        thescore = pipeline.score(X_test)
+        #thescore = pipeline.score(X_test)
+
+
+        predicted_train = pipeline.fit(X_train).predict(X_train)
+        predicted_test = pipeline.predict(X_test)
