@@ -124,6 +124,7 @@ def parse_senate_data(dict):
 
 
 def get_politico():
+
     states = ['alabama','alaska','arizona','arkansas','california','colorado',
      'connecticut','delaware','florida','georgia','hawaii','idaho',
      'illinois','indiana','iowa','kansas','kentucky','louisiana',

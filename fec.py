@@ -5,15 +5,13 @@ import matplotlib.pyplot as plt
 import time
 
 
-def read_indiv():
+def read_indiv(headerfile, datafile, year):
     #takes about 210 seconds to read
     #20,353,316 records
 
     num_records = 100000
 
-    headers = pd.read_csv('fec/indiv16/indiv_header_file.csv')
-    datafile = 'fec/indiv16/itcont.txt'
-    # headers = pd.read_csv('pas216/pas2.headers.csv')
+    headers = pd.read_csv(headerfile)
 
     dtypes={'CMTE_ID'           : object,
             'AMNDT_IND'         : object,
@@ -54,25 +52,28 @@ def read_indiv():
     print ("Total records: {:,}".format(indiv.shape[0]))
     #print ("Reading time was about {:,.0f} records per second".format(num_records/(toc-tic)))
 
+    indiv['YEAR'] = year
+
     return indiv
 
 
-def read_file(header_file, data_file):
+def read_file(header_file, data_file, year):
     headers = pd.read_csv(header_file)
     file = pd.read_csv(data_file, sep = '|', error_bad_lines = False, names = headers)
+    file['YEAR'] = year
     return file
 
 
 def group_by_trans(filename, varname):
-    file_trans = filename.groupby('CMTE_ID')['TRANSACTION_AMT'].sum().astype(int)
+    file_trans = filename.groupby(['CMTE_ID'])['TRANSACTION_AMT'].sum().astype(int)
     file_trans.rename(varname,inplace = True)
 
     return file_trans
 
 
-def make_transactions(indiv_trans, pas2_trans):
+def make_transactions(indiv_trans, pas_trans):
 
-    transactions = pd.concat([indiv_trans,pas2_trans], axis=1)
+    transactions = pd.concat([indiv_trans,pas_trans], axis=1)
     transactions['TOTAL_TRANS'] = transactions['TRANS_BY_INDIV'].fillna(0) + transactions['TRANS_BY_CMTE'].fillna(0)
     transactions['CMTE_ID'] = transactions.index
 
@@ -82,7 +83,7 @@ def make_transactions(indiv_trans, pas2_trans):
 def make_fec(transactions, ccl, cn):
 
     trans_w_candID = pd.merge(transactions, ccl, on = 'CMTE_ID', how='left')
-    trans_by_candID = trans_w_candID.groupby('CAND_ID')['TOTAL_TRANS', 'TRANS_BY_INDIV', 'TRANS_BY_CMTE'].sum().astype(int)
+    trans_by_candID = trans_w_candID.groupby(['CAND_ID'])['TOTAL_TRANS', 'TRANS_BY_INDIV', 'TRANS_BY_CMTE'].sum().astype(int)
     trans_by_candID['CAND_ID'] = trans_by_candID.index
     fec = pd.merge(trans_by_candID, cn, on = 'CAND_ID', how='left')
     fec.rename(columns={'CAND_ST': 'STATE', 'CAND_OFFICE_DISTRICT': 'DISTRICT'}, inplace=True)
@@ -95,17 +96,32 @@ def get_fec():
     pd.set_option('display.precision', 2)
     pd.options.display.float_format = '{:,.0f}'.format
 
-    indiv = read_indiv()
-    pas2 = read_file('fec/pas216/pas2.headers.csv', 'fec/pas216/itpas2.txt')
-    ccl = read_file('fec/ccl/ccl_header_file.csv', 'fec/ccl/ccl.txt')
-    cn = read_file('fec/cn/cn_header_file.csv', 'fec/cn/cn.txt')
+    indiv2016 = read_indiv('fec/indiv/indiv_headers_2016.csv', 'fec/indiv/indiv2016.txt', 2016)
+    pas2016 = read_file('fec/pas/pas_headers_2016.csv', 'fec/pas/pas2016.txt', 2016)
+    ccl2016 = read_file('fec/ccl/ccl_headers_2016.csv', 'fec/ccl/ccl2016.txt', 2016)
+    cn2016 = read_file('fec/cn/cn_headers_2016.csv', 'fec/cn/cn2016.txt', 2016)
 
-    pas2_trans = group_by_trans(pas2, 'TRANS_BY_CMTE')
-    indiv_trans = group_by_trans(indiv, 'TRANS_BY_INDIV')
+    indiv2014 = read_indiv('fec/indiv/indiv_headers_2014.csv', 'fec/indiv/indiv2014.txt', 2014)
+    pas2014 = read_file('fec/pas/pas_headers_2014.csv', 'fec/pas/pas2014.txt', 2014)
+    ccl2014 = read_file('fec/ccl/ccl_headers_2014.csv', 'fec/ccl/ccl2014.txt', 2014)
+    cn2014 = read_file('fec/cn/cn_headers_2014.csv', 'fec/cn/cn2014.txt', 2014)
 
-    transactions = make_transactions(indiv_trans, pas2_trans)
+    # indiv = pd.concat([indiv2014, indiv2016])
+    # pas = pd.concat([pas2014, pas2016])
+    # ccl = pd.concat([ccl2014, ccl2016])
+    # cn = pd.concat([cn2014, cn2016])
 
-    fec = make_fec(transactions, ccl, cn)
+    pas_trans2014 = group_by_trans(pas2014, 'TRANS_BY_CMTE')
+    indiv_trans2014 = group_by_trans(indiv2014, 'TRANS_BY_INDIV')
+    transactions2014 = make_transactions(indiv_trans2014, pas_trans2014)
+    fec2014 = make_fec(transactions2014, ccl2014, cn2014)
+
+    pas_trans2016 = group_by_trans(pas2016, 'TRANS_BY_CMTE')
+    indiv_trans2016 = group_by_trans(indiv2016, 'TRANS_BY_INDIV')
+    transactions2016 = make_transactions(indiv_trans2016, pas_trans2016)
+    fec2016 = make_fec(transactions2016, ccl2016, cn2016)
+
+    fec = pd.concat([fec2014, fec2016])
 
     return fec
 

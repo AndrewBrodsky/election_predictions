@@ -51,10 +51,10 @@ def join_files(politico, fec, acs, dark_house):
 
 if __name__ == "__main__":
 
-    beforepickle = True
+    beforepickle = False
     afterpickle = True
 
-    if beforepickle == False:
+    if beforepickle == True:
         census_key = api_keys.census_api
         alldata = import_data()
         pickle.dump( alldata, open( "save.p", "wb" ) )
@@ -63,8 +63,8 @@ if __name__ == "__main__":
         alldata = pickle.load( open( "save.p", "rb" ) )
 
         features = ['YEAR2016', 'DEM', 'incumbent', 'TRANS_BY_INDIV', 'TRANS_BY_CMTE',
-           'B01003_001E', 'B01002_001E', 'B02001_002E', 'B02001_003E',
-           'B02001_004E', 'B02001_005E', 'B02001_006E', 'B02001_008E',
+           'DARK_FOR', 'DARK_AGAINST', 'B01003_001E', 'B01002_001E', 'B02001_002E',
+           'B02001_003E', 'B02001_004E', 'B02001_005E', 'B02001_006E', 'B02001_008E',
            'B05001_006E', 'B05001_005E', 'B05002_003E', 'B05012_001E',
            'B06007_001E', 'B06007_002E', 'B06007_003E', 'B06009_002E',
            'B06009_003E', 'B06009_004E', 'B06009_011E', 'B06009_012E',
@@ -72,6 +72,12 @@ if __name__ == "__main__":
            'B06012_002E', 'B06012_003E']
 
         X = alldata[features]
+        X['TRANS_BY_INDIV'].fillna(0, inplace = True)
+        X['TRANS_BY_CMTE'].fillna(0, inplace = True)
+        X['DARK_FOR'].fillna(0, inplace = True)
+        X['DARK_AGAINST'].fillna(0, inplace=True)
+
+
         y = alldata['vote_count']
         X_train, X_test, y_train, y_test = train_test_split(X,y)
 

@@ -34,8 +34,24 @@ def make_dicts():
         'Median income' : 'B06011_001E',
         'Poverty Universe' : 'B06012_001E',
         'Below 100 pct FPL' : 'B06012_002E',
-        '100-149 FPL' : 'B06012_003E'
+        '100-149 FPL' : 'B06012_003E',
+        'Income below poverty (White male)' : 'B17001A_003E',
+        'Income below poverty (White male)' : 'B17001A_003E',
+        'Income below poverty (White female)' : 'B17001A_017E',
+        'Income above poverty (White male)' : 'B17001A_032E',
+        'Income above poverty (White female)' : 'B17001A_046E',
+        'Income below poverty (Black male)' : 'B17001B_003E',
+        'Income below poverty (Black female)' : 'B17001B_017E',
+        'Income above poverty (Black male)' : 'B17001B_032E',
+        'Income above poverty (Black female)' : 'B17001B_046E',
+        'Transportation by CTV - below 100 pct FPL' : 'B08122_006E',
+        'Transportation by CTV - 100-149 pct FPL' : 'B08122_007E',
+        'Transportation by CTV - 150 FPL +' : 'B08122_008E',
+        'Transportation by CTV - below 100 pct FPL' : 'B08122_018E',
+        'Transportation by CTV - 100-149 pct FPL' : 'B08122_019E',
+        'Transportation by CTV - 150 FPL +' : 'B08122_020E'
         }
+
 
     state_abbrev = {
         'Alabama': 'AL',
@@ -111,7 +127,13 @@ def make_dicts():
         'Hispanic Female 18-64' : 'C01001I_008E',
         'Hispanic Female 65+' : 'C01001I_009E',
         'Reporting Ancestry' : 'C04004_001E',
-        'American Ancestry' : 'C04004_002E'
+        'American Ancestry' : 'C04004_002E',
+        'Black women wtih birth in past 12 months' : 'B13002B_002E',
+        'Mobility for income below 100 pct FPL' : 'B07012-002E',
+        'Black women with no birth in past 12 months' : 'B13002B_005E',
+        'Mobility for income below 100 pct FPL' : 'B07012-002E',
+        'White women wtih birth in past 12 months' : 'B13002A_002E',
+        'White women with no birth in past 12 months' : 'B13002A_005E',
         }
 
     return acs_tables, state_abbrev
