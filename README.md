@@ -6,6 +6,9 @@ This project uses machine learning to predict candidates' vote totals for U.S. H
 
 <img src="https://upload.wikimedia.org/wikipedia/commons/3/30/1988_US_House_Election_Map.png"><i>Results of U.S. House of Representatives Election, 2016</image></i>
 
+<add source and description>
+<more about the work you did for the code, rather than results -- the difficult thing you got around>
+
 ### <span style="color:navy">Background</span>
 
 Academic research has used national economic and political indicators such as GNP per capita growth and Presidential popularity to predict House elections<sup>2</sup>
@@ -24,6 +27,8 @@ Data for the project are drawn from four publicly available sources, including:
   * <a href="www.opensecrets.org"><b>Open Secrets</b></a>: "Dark money" spent for or against each candiate during the 2014 and 2016 election cycles
 
 ### Methodology
+
+<remove description of each model>
 
 Machine learning models often yield impressive predictive results, especially with very complex or high-dimensional data. Because this analysis uses complex data with many predictor variables, several machine learning algorithms were developed, including Random Forests, Gradient Boosted Trees, Artificial Neural Nets, as well as simple linear regression.
 
