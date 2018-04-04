@@ -101,7 +101,7 @@ if __name__ == "__main__":
         #
         # GBR_model.fit(X_train, y_train)
 
-        pipeline = make_pipeline(linear_model, RF_model)
+
         pipeline.fit(X_train, y_train)
         #thescore = pipeline.score(X_test)
 
