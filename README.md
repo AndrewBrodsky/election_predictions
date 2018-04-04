@@ -4,7 +4,7 @@ Determining the factors which contribute to U.S. elections is important for poli
 
 This project uses machine learning to predict candidates' vote totals for U.S. House of Representatives elections, based on district demographics, campaign funding, and candidate party.
 
-<img src="https://upload.wikimedia.org/wikipedia/commons/3/30/1988_US_House_Election_Map.png"><i>Results of U.S. House of Representatives Election, 2016</image>
+<img src="https://upload.wikimedia.org/wikipedia/commons/3/30/1988_US_House_Election_Map.png"><i>Results of U.S. House of Representatives Election, 2016</image></i>
 
 ### <span style="color:navy">Background</span>
 
