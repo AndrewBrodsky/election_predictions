@@ -60,7 +60,7 @@ The project also leverages an existing Python wrapper, <a href = "https://jtleid
 ### Notes
 
 <sup>1</sup> <a href = http://science.sciencemag.org/content/355/6324/515>Kennedy, Wojcik, and Lazer (2017).</a><br>
-<sup>2</sup> See <a href = http://www.jstor.org/stable/439492?seq=1#page_scan_tab_contents>Lewis-Beck and Rice (1984)</a>.<br>
+<sup>2</sup> See <a href = "http://www.jstor.org/stable/439492?seq=1#page_scan_tab_contents">Lewis-Beck and Rice (1984)</a>.<br>
 <sup>3</sup> See <a href = https://www.sciencedirect.com/science/article/pii/S0169207008000289>Lewis-Beck and Tien (2008),</a> <a href= https://onlinelibrary.wiley.com/doi/full/10.1111/ajps.12127> Eggers, Fowler, Hinmueller, Hall, and Snyder (2014)</a> and <a href = https://www.sciencedirect.com/science/article/pii/S0304407607001121>Lee (2008)</a>.<br>
 <sup>4</sup> See Beauchamp, 2017; Huberty, 2013; Saleiro, Gomes, and Soares, 2016.<br>
 <sup>5</sup> See <a href = https://www.liebertpub.com/doi/full/10.1089/big.2017.0047> Sathiaraj, Cassidy, and Rohli (2017) </a>.
