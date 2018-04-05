@@ -17,6 +17,8 @@ def get_old_votes():
   old_votes.dropna(subset=['DISTRICT', 'VOTE_COUNT'], inplace=True)
   old_votes = old_votes[(old_votes.PARTY == 'DEM') | (old_votes.PARTY == 'REP')]
   old_votes['DEM'] = old_votes['PARTY'] == 'DEM'
+  old_votes.rename(columns={'YEAR' : "year"}, inplace=True)
+  old_votes.rename(columns={'DISTRICT' : "district"}, inplace=True)
 
   return old_votes
 

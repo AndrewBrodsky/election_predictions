@@ -57,8 +57,6 @@ def make_alldata():
 
 def make_model_data(dataframe):
 
-    df.rename(index=str, columns={"A": "a", "C": "c"})
-
     dataframe.rename(index=str, columns={'TOTAL_POP' : 'B01003_001E',
                                          'LANG_UNIV' : 'B06007_001E',
                                          'INCOME_UNIV' : 'B06010_001E',

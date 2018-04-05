@@ -3,6 +3,7 @@ import urllib.request
 from collections import defaultdict
 import pandas as pd
 
+from old_votes import get_old_votes
 
 def get_house_data(years, states):
 
@@ -141,7 +142,7 @@ def get_politico():
 
     datadict = get_house_data(years, states)
 
-    politico = make_politico(datadict, years, states)
+    politico1 = make_politico(datadict, years, states)
 
     state_dict = {
     'alabama': 'AL',
@@ -196,12 +197,15 @@ def get_politico():
     'wyoming': 'WY'
     }
 
-    politico['STATE_ABBR'] = politico['state'].map(state_dict)
-    politico['LAST_NAME'] = politico.cand_name.str.upper().str.split(" ").str[-1]
-    politico['DEM'] = politico['party'] == 'dem'
-    politico['YEAR2016'] = politico['year'] == 2016
+    politico1['STATE_ABBR'] = politico1['state'].map(state_dict)
+    politico1['LAST_NAME'] = politico1.cand_name.str.upper().str.split(" ").str[-1]
+    politico1['DEM'] = politico1['party'] == 'dem'
+    politico1['YEAR2016'] = politico1['year'] == 2016
 
-    return politico
+    old_votes = get_old_votes()
+    politico2 = pd.concat([politico1, old_votes])
+
+    return politico2
 
 
 if __name__ == "__main__":
