@@ -59,18 +59,18 @@ def make_politico(datadict, years, states):
                         demname = democrat.find(class_="results-name").get_text()
 
                         if demname[-4:] == ' (i)':
-                            votesdict[year][state][distnum]['dem']['incumbent'] = True
+                            votesdict[year][state][distnum]['DEM']['INCUMBENT'] = True
                             demname = demname[:-4]
                         else:
-                            votesdict[year][state][distnum]['dem']['incumbent'] = False
+                            votesdict[year][state][distnum]['DEM']['INCUMBENT'] = False
 
                         if demname[:9] == 'D Winner ':
                              demname = demname[9:]
                         else:
                              demname = demname[2:]
 
-                        votesdict[year][state][distnum]['dem']['cand_name'] = demname
-                        votesdict[year][state][distnum]['dem']['vote_count'] = int(demcount.replace(',',''))
+                        votesdict[year][state][distnum]['DEM']['CAND_NAME'] = demname
+                        votesdict[year][state][distnum]['DEM']['VOTE_COUNT'] = int(demcount.replace(',',''))
 
 
                 #Republican candidate
@@ -85,18 +85,18 @@ def make_politico(datadict, years, states):
                         repname = republican.find(class_="results-name").get_text()
 
                         if repname[-4:] == ' (i)':
-                            votesdict[year][state][distnum]['rep']['incumbent'] = True
+                            votesdict[year][state][distnum]['REP']['INCUMBENT'] = True
                             repname = repname[:-4]
                         else:
-                            votesdict[year][state][distnum]['rep']['incumbent'] = False
+                            votesdict[year][state][distnum]['REP']['INCUMBENT'] = False
 
                         if repname[:9] == 'R Winner ':
                              repname = repname[9:]
                         else:
                              repname = repname[2:]
 
-                        votesdict[year][state][distnum]['rep']['cand_name'] = repname
-                        votesdict[year][state][distnum]['rep']['vote_count'] = int(repcount.replace(',',''))
+                        votesdict[year][state][distnum]['REP']['CAND_NAME'] = repname
+                        votesdict[year][state][distnum]['REP']['VOTE_COUNT'] = int(repcount.replace(',',''))
 
 
     votes_df= pd.DataFrame.from_dict({(i,j,k,l): votesdict[i][j][k][l]
@@ -107,7 +107,7 @@ def make_politico(datadict, years, states):
         orient='index')
 
     votes_df.reset_index(inplace=True)
-    votes_df.rename(index=str, columns={"level_0":"year", "level_1": "state", "level_2": "district", "level_3":"party"}, inplace=True)
+    votes_df.rename(index=str, columns={"level_0":"YEAR", "level_1": "STATE", "level_2": "DISTRICT", "level_3":"PARTY"}, inplace=True)
 
     return votes_df
 
@@ -197,10 +197,10 @@ def get_politico():
     'wyoming': 'WY'
     }
 
-    politico1['STATE_ABBR'] = politico1['state'].map(state_dict)
-    politico1['LAST_NAME'] = politico1.cand_name.str.upper().str.split(" ").str[-1]
-    politico1['DEM'] = politico1['party'] == 'dem'
-    politico1['YEAR2016'] = politico1['year'] == 2016
+    politico1['STATE_ABBR'] = politico1['STATE'].map(state_dict)
+    politico1['LAST_NAME'] = politico1.CAND_NAME.str.upper().str.split(" ").str[-1]
+    politico1['DEM'] = politico1['PARTY'] == 'DEM'
+    politico1['YEAR2016'] = politico1['YEAR'] == 2016
 
     old_votes = get_old_votes()
     politico2 = pd.concat([politico1, old_votes])

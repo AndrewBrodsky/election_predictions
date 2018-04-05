@@ -16,19 +16,19 @@ import api_keys
 
 def join_files(politico, fec, acs, dark_house):
 
-    alldata1 = pd.merge(politico, fec, left_on = ['year', 'STATE_ABBR', 'district', 'LAST_NAME'],
-              right_on = ['CAND_ELECTION_YR', 'STATE', 'DISTRICT', 'LAST_NAME'], how='left')
+    alldata1 = pd.merge(politico, fec, on = ['YEAR', 'STATE_ABBR', 'DISTRICT', 'LAST_NAME'],
+              how='left')
 
-    alldata2 = pd.merge(alldata1, acs, left_on = ['STATE_ABBR', 'district'],
-              right_on = ['STATE_ABBR', 'DISTRICT'], how = 'left')
+    alldata2 = pd.merge(alldata1, acs, on = ['STATE_ABBR', 'DISTRICT'],
+              how = 'left')
 
-    alldata3 = pd.merge(alldata2, dark_house, left_on = ['STATE_ABBR', 'DISTRICT_x', 'LAST_NAME', 'year'],
-              right_on = ['STATE', 'DISTRICT', 'LAST_NAME', 'Year'], how = 'left')
+    alldata3 = pd.merge(alldata2, dark_house, on = ['STATE_ABBR', 'DISTRICT', 'LAST_NAME', 'YEAR'],
+              how = 'left')
 
     return alldata3
 
 
-def import_data():
+def import_data(census_key):
 
     politico = get_politico()
     print ("Politico data imported")
@@ -39,10 +39,6 @@ def import_data():
     dark_house = make_dark_house()
     print ("Dark Money data imported")
 
-    #eventually move these to subfiles and rename dark_house.Total to DarkTotal
-    #acs['DISTRICT'] = pd.to_numeric(acs['DISTRICT'], errors = 'coerce')
-    #dark_house['DISTRICT'] = pd.to_numeric(dark_house['DISTRICT'], errors = 'coerce')
-
     alldata = join_files(politico, fec, acs, dark_house)
 
     return alldata
@@ -51,7 +47,7 @@ def import_data():
 def make_alldata():
 
     census_key = api_keys.census_api
-    alldata = import_data()
+    alldata = import_data(census_key)
     pickle.dump( alldata, open( "save.p", "wb" ) )
 
 
@@ -62,6 +58,7 @@ def make_model_data(dataframe):
                                          'INCOME_UNIV' : 'B06010_001E',
                                          'POVERTY_UNIV' : 'B06012_001E'})
 
+    '''
 
     'Transportation by CTV - below 100 pct FPL' : 'B08122_006E',
     'Transportation by CTV - 100-149 pct FPL' : 'B08122_007E',
@@ -70,6 +67,7 @@ def make_model_data(dataframe):
     'Transportation by CTV - 100-149 pct FPL' : 'B08122_019E',
     'Transportation by CTV - 150 FPL +' : 'B08122_020E'
 
+    '''
 
 
     dataframe['WHITE_PCT'] = dataframe['B02001_002E'] / dataframe['TOTAL_POP']
@@ -80,7 +78,7 @@ def make_model_data(dataframe):
     dataframe['2RACES_PCT'] = dataframe['B02001_008E'] / dataframe['TOTAL_POP']
     dataframe['NOTCITIZEN_PCT'] = dataframe['B05001_006E'] / dataframe['TOTAL_POP']
     dataframe['FOREIGNCITIZEN_PCT'] = dataframe['B05001_005E'] / dataframe['TOTAL_POP']
-    dataframe['BORNINSTATE_PCT'] = dataframe[]'B05002_003E'] / dataframe['TOTAL_POP']
+    dataframe['BORNINSTATE_PCT'] = dataframe['B05002_003E'] / dataframe['TOTAL_POP']
     dataframe['BORNINUS_PCT'] = dataframe['B05012_001E'] / dataframe['TOTAL_POP']
 
     dataframe['ENGLISH_PCT'] = dataframe['B06007_002E'] / dataframe['LANG_UNIV']
@@ -89,8 +87,8 @@ def make_model_data(dataframe):
     dataframe['NOINCOME_PCT'] = dataframe['B06007_002E'] / dataframe['INCOME_UNIV']
     dataframe['MEDIAN_INCOME_PCT'] = dataframe['B06007_003E'] / dataframe['INCOME_UNIV']
 
-    dataframe['Below 100 pct FPL'] = dataframe['B06012_002E'] / dataframe['POVERTY_UNIV']
-    dataframe['100-149 FPL'] = dataframe['POVERTY_UNIV']
+    dataframe['Below100FPL'] = dataframe['B06012_002E'] / dataframe['POVERTY_UNIV']
+    dataframe['100_149FPL'] = dataframe['POVERTY_UNIV']
     dataframe['POVERTYWM'] = dataframe['B17001A_003E'] / dataframe['POVERTY_UNIV']
     dataframe['POVERTYWF'] = dataframe['B17001A_017E'] / dataframe['POVERTY_UNIV']
     dataframe['ABOVEPOVERTYWM'] = dataframe['B17001A_032E'] / dataframe['POVERTY_UNIV']
@@ -124,17 +122,9 @@ def make_model_data(dataframe):
     return model_data
 
 
-if __name__ == "__main__":
-
-    #Comment next line if pickle file already created
-    #make_alldata()
-
-    alldata = pickle.load( open( "save.p", "rb" ) )
-
-    model_data = make_model_data(alldata)
-
-    X = model_data.drop('vote_count', axis=1)
-    y = model_data['vote_count']
+def make_pipeline(dataframe):
+    X = dataframe.drop('vote_count', axis=1)
+    y = dataframe['vote_count']
     X_train, X_test, y_train, y_test = train_test_split(X,y)
 
     np.set_printoptions(suppress=True)
@@ -159,3 +149,15 @@ if __name__ == "__main__":
     GB_importances = GB_model.feature_importances_
     GB_zip = zip(features, GB_importances)
     print ("GB model: ", GB_model.score(X_test, y_test), sorted(GB_zip, key=lambda x: x[1]))
+
+
+if __name__ == "__main__":
+
+    #Comment next line if pickle file already created
+    make_alldata()
+
+    #alldata = pickle.load( open( "save.p", "rb" ) )
+
+    #model_data = make_model_data(alldata)
+
+    #make_pipeline(model_data)

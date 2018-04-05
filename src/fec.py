@@ -9,7 +9,7 @@ def read_indiv(headerfile, datafile, year):
     #takes about 210 seconds to read
     total_records = 20353316
 
-    num_records = 100000
+    num_records = 10000
 
     headers = pd.read_csv(headerfile)
 
@@ -86,8 +86,11 @@ def make_fec(transactions, ccl, cn):
     trans_by_candID = trans_w_candID.groupby(['CAND_ID'])['TOTAL_TRANS', 'TRANS_BY_INDIV', 'TRANS_BY_CMTE'].sum().astype(int)
     trans_by_candID['CAND_ID'] = trans_by_candID.index
     fec = pd.merge(trans_by_candID, cn, on = 'CAND_ID', how='left')
-    fec.rename(columns={'CAND_ST': 'STATE', 'CAND_OFFICE_DISTRICT': 'DISTRICT'}, inplace=True)
+    fec.rename(columns={'CAND_ST': 'STATE_ABBR', 'CAND_OFFICE_DISTRICT': 'DISTRICT'}, inplace=True)
     fec['LAST_NAME'] = fec.CAND_NAME.str.split(" ").str[0].str.replace(",","")
+    fec.dropna(subset=['YEAR', 'DISTRICT'], inplace=True)
+    fec['YEAR'] = fec['YEAR'].astype(int)
+    fec['DISTRICT'] = fec['DISTRICT'].astype(int)
 
     return fec
 
