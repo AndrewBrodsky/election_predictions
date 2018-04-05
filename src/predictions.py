@@ -53,22 +53,12 @@ def make_alldata():
 
 def make_model_data(dataframe):
 
-    dataframe.rename(index=str, columns={'TOTAL_POP' : 'B01003_001E',
-                                         'LANG_UNIV' : 'B06007_001E',
-                                         'INCOME_UNIV' : 'B06010_001E',
-                                         'POVERTY_UNIV' : 'B06012_001E'})
+    dataframe['MIDTERM'] = (dataframe['YEAR'] == 2010) | (dataframe['YEAR'] == 2014)
 
-    '''
-
-    dataframe['POVERTY_CTV'] = dataframe 'B08122_006E',
-    'Transportation by CTV - 100-149 pct FPL' : 'B08122_007E',
-    'Transportation by CTV - 150 FPL +' : 'B08122_008E',
-    'Transportation by CTV - below 100 pct FPL' : 'B08122_018E',
-    'Transportation by CTV - 100-149 pct FPL' : 'B08122_019E',
-    'Transportation by CTV - 150 FPL +' : 'B08122_020E'
-
-    '''
-
+    dataframe.rename(index=str, columns={'B01003_001E' : 'TOTAL_POP',
+                                         'B06007_001E' : 'LANG_UNIV',
+                                         'B06010_001E' : 'INCOME_UNIV',
+                                         'B06012_001E' : 'POVERTY_UNIV'}, inplace=True)
 
     dataframe['WHITE_PCT'] = dataframe['B02001_002E'] / dataframe['TOTAL_POP']
     dataframe['BLACK_PCT'] = dataframe['B02001_003E'] / dataframe['TOTAL_POP']
@@ -86,6 +76,12 @@ def make_model_data(dataframe):
 
     dataframe['NOINCOME_PCT'] = dataframe['B06007_002E'] / dataframe['INCOME_UNIV']
     dataframe['MEDIAN_INCOME_PCT'] = dataframe['B06007_003E'] / dataframe['INCOME_UNIV']
+    dataframe['CTV_BELOW100FPL'] = dataframe['B08122_006E'] / dataframe['INCOME_UNIV']
+    dataframe['CTV_100-149FPL'] = dataframe['B08122_007E'] / dataframe['INCOME_UNIV']
+    dataframe['CTV_150'] = dataframe['B08122_008E'] / dataframe['INCOME_UNIV']
+    dataframe['WALK_BELOW100FPL']= dataframe['B08122_018E'] / dataframe['INCOME_UNIV']
+    dataframe['WALK_100-149FPL']= dataframe[ 'B08122_019E'] / dataframe['INCOME_UNIV']
+    dataframe['WALK_100-149FPL'] = dataframe['B08122_020E'] / dataframe['INCOME_UNIV']
 
     dataframe['Below100FPL'] = dataframe['B06012_002E'] / dataframe['POVERTY_UNIV']
     dataframe['100_149FPL'] = dataframe['POVERTY_UNIV']
@@ -98,18 +94,14 @@ def make_model_data(dataframe):
     dataframe['ABOVEPOVERTYBM'] = dataframe['B17001B_032E'] / dataframe['POVERTY_UNIV']
     dataframe['ABOVEPOVERTYBF'] = dataframe['B17001B_046E'] / dataframe['POVERTY_UNIV']
 
-
-
-
-
-    features  = ['YEAR', 'incumbent', 'TRANS_BY_INDIV', 'TRANS_BY_CMTE',
-           'DARK_FOR', 'DARK_AGAINST', 'B01003_001E', 'B01002_001E', 'B02001_002E',
-           'B02001_003E', 'B02001_004E', 'B02001_005E', 'B02001_006E', 'B02001_008E',
-           'B05001_006E', 'B05001_005E', 'B05002_003E', 'B05012_001E',
-           'B06007_001E', 'B06007_002E', 'B06007_003E', 'B06009_002E',
-           'B06009_003E', 'B06009_004E', 'B06009_011E', 'B06009_012E',
-           'B06010_001E', 'B06010_002E', 'B06011_001E', 'B06012_001E',
-           'B06012_002E', 'B06012_003E', 'vote_count']
+    features  = ['YEAR', 'DEM', 'MIDTERM', 'INCUMBENT', 'TRANS_BY_INDIV', 'TRANS_BY_CMTE',
+           'DARK_FOR', 'DARK_AGAINST', 'TOTAL_POP', 'WHITE_PCT','BLACK_PCT','AMERIND_PCT',
+           'ASIAN_PCT','PACIFIC_PCT','2RACES_PCT','NOTCITIZEN_PCT', 'FOREIGNCITIZEN_PCT',
+           'BORNINSTATE_PCT','BORNINUS_PCT','ENGLISH_PCT','SPANISH_PCT','NOINCOME_PCT',
+           'MEDIAN_INCOME_PCT','CTV_BELOW100FPL','CTV_100-149FPL','CTV_150',
+           'WALK_BELOW100FPL','WALK_100-149FPL','WALK_100-149FPL','Below100FPL',
+           '100_149FPL','POVERTYWM','POVERTYWF','ABOVEPOVERTYWM','ABOVEPOVERTYWF',
+           'POVERTYBM','POVERTYBF','ABOVEPOVERTYBM','ABOVEPOVERTYBF', 'VOTE_COUNT']
 
     model_data = dataframe.filter(items = features )
 
@@ -123,8 +115,9 @@ def make_model_data(dataframe):
 
 
 def make_pipeline(dataframe):
-    X = dataframe.drop('vote_count', axis=1)
-    y = dataframe['vote_count']
+
+    X = dataframe.drop('VOTE_COUNT', axis=1)
+    y = dataframe['VOTE_COUNT']
     X_train, X_test, y_train, y_test = train_test_split(X,y)
 
     np.set_printoptions(suppress=True)
@@ -133,31 +126,31 @@ def make_pipeline(dataframe):
     linear_model = LinearRegression()
     linear_model.fit(X_train, y_train)
     lin_pred = linear_model.predict(X_test)
-    lin_zip= zip(features,linear_model.coef_)
+    lin_zip= zip(X,linear_model.coef_)
     print ("Linear model: ", linear_model.score (X_test, y_test), sorted(lin_zip, key=lambda x: x[1]))
     print ("\r")
 
     RF_model = RandomForestRegressor()
     RF_model.fit(X_train, y_train)
     RF_importances = RF_model.feature_importances_
-    RF_zip = zip(features, RF_importances)
+    RF_zip = zip(X, RF_importances)
     print ("RF model: ", RF_model.score(X_test, y_test), sorted(RF_zip, key=lambda x: x[1]))
     print ("\r")
 
     GB_model = GradientBoostingRegressor()
     GB_model.fit(X_train, y_train)
     GB_importances = GB_model.feature_importances_
-    GB_zip = zip(features, GB_importances)
+    GB_zip = zip(X, GB_importances)
     print ("GB model: ", GB_model.score(X_test, y_test), sorted(GB_zip, key=lambda x: x[1]))
 
 
 if __name__ == "__main__":
 
     #Comment next line if pickle file already created
-    make_alldata()
+    #make_alldata()
 
-    #alldata = pickle.load( open( "save.p", "rb" ) )
+    alldata = pickle.load( open( "save.p", "rb" ) )
 
-    #model_data = make_model_data(alldata)
+    model_data = make_model_data(alldata)
 
-    #make_pipeline(model_data)
+    make_pipeline(model_data)
