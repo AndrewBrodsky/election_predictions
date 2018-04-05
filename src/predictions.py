@@ -60,7 +60,7 @@ def make_model_data(dataframe):
 
     '''
 
-    'Transportation by CTV - below 100 pct FPL' : 'B08122_006E',
+    dataframe['POVERTY_CTV'] = dataframe 'B08122_006E',
     'Transportation by CTV - 100-149 pct FPL' : 'B08122_007E',
     'Transportation by CTV - 150 FPL +' : 'B08122_008E',
     'Transportation by CTV - below 100 pct FPL' : 'B08122_018E',

@@ -9,7 +9,7 @@ def read_indiv(headerfile, datafile, year):
     #takes about 210 seconds to read
     total_records = 20353316
 
-    num_records = 10000
+    num_records = 50500500
 
     headers = pd.read_csv(headerfile)
 
@@ -37,7 +37,7 @@ def read_indiv(headerfile, datafile, year):
             }
 
     tic = time.time()
-    indiv = pd.read_csv(datafile, sep = '|', error_bad_lines=False, names = headers, nrows=num_records )
+    indiv = pd.read_csv(datafile, sep = '|', error_bad_lines=False, names = headers, nrows=num_records, encoding = 'latin1')
     indiv.fillna(value=0, inplace=True)
     indiv.ZIP_CODE = indiv.ZIP_CODE.astype(str)
     indiv.TRANSACTION_DT = indiv.TRANSACTION_DT.astype(str)
@@ -49,7 +49,8 @@ def read_indiv(headerfile, datafile, year):
 
     toc = time.time()
     #print ("Elapsed time: ", str(round(toc-tic,1)), "seconds")
-    print ("Total records: {:,}".format(indiv.shape[0]))
+    print ("Year: ", year)
+    print ("Total individual records: {:,}".format(indiv.shape[0]))
     #print ("Reading time was about {:,.0f} records per second".format(num_records/(toc-tic)))
 
     indiv['YEAR'] = year
@@ -59,7 +60,7 @@ def read_indiv(headerfile, datafile, year):
 
 def read_file(header_file, data_file, year):
     headers = pd.read_csv(header_file)
-    file = pd.read_csv(data_file, sep = '|', error_bad_lines = False, names = headers)
+    file = pd.read_csv(data_file, sep = '|', error_bad_lines = False, names = headers, encoding ='latin1')
     file['YEAR'] = year
     return file
 
