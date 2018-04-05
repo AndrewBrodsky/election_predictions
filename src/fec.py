@@ -9,7 +9,7 @@ def read_indiv(headerfile, datafile, year):
     #takes about 210 seconds to read
     total_records = 20353316
 
-    num_records = total_records
+    num_records = 100000
 
     headers = pd.read_csv(headerfile)
 
@@ -96,20 +96,42 @@ def get_fec():
     pd.set_option('display.precision', 2)
     pd.options.display.float_format = '{:,.0f}'.format
 
-    indiv2016 = read_indiv('fec/indiv/indiv_headers_2016.csv', 'fec/indiv/indiv2016.txt', 2016)
-    pas2016 = read_file('fec/pas/pas_headers_2016.csv', 'fec/pas/pas2016.txt', 2016)
-    ccl2016 = read_file('fec/ccl/ccl_headers_2016.csv', 'fec/ccl/ccl2016.txt', 2016)
-    cn2016 = read_file('fec/cn/cn_headers_2016.csv', 'fec/cn/cn2016.txt', 2016)
+    indiv2010 = read_indiv('fec/indiv/indiv_headers_2010.csv', 'fec/indiv/indiv2010.txt', 2010)
+    pas2010 = read_file('fec/pas/pas_headers_2010.csv', 'fec/pas/pas2010.txt', 2010)
+    ccl2010 = read_file('fec/ccl/ccl_headers_2010.csv', 'fec/ccl/ccl2010.txt', 2010)
+    cn2010 = read_file('fec/cn/cn_headers_2010.csv', 'fec/cn/cn2010.txt', 2010)
+
+    indiv2012 = read_indiv('fec/indiv/indiv_headers_2012.csv', 'fec/indiv/indiv2012.txt', 2012)
+    pas2012 = read_file('fec/pas/pas_headers_2012.csv', 'fec/pas/pas2012.txt', 2012)
+    ccl2012 = read_file('fec/ccl/ccl_headers_2012.csv', 'fec/ccl/ccl2012.txt', 2012)
+    cn2012 = read_file('fec/cn/cn_headers_2012.csv', 'fec/cn/cn2012.txt', 2012)
 
     indiv2014 = read_indiv('fec/indiv/indiv_headers_2014.csv', 'fec/indiv/indiv2014.txt', 2014)
     pas2014 = read_file('fec/pas/pas_headers_2014.csv', 'fec/pas/pas2014.txt', 2014)
     ccl2014 = read_file('fec/ccl/ccl_headers_2014.csv', 'fec/ccl/ccl2014.txt', 2014)
     cn2014 = read_file('fec/cn/cn_headers_2014.csv', 'fec/cn/cn2014.txt', 2014)
 
+    indiv2016 = read_indiv('fec/indiv/indiv_headers_2016.csv', 'fec/indiv/indiv2016.txt', 2016)
+    pas2016 = read_file('fec/pas/pas_headers_2016.csv', 'fec/pas/pas2016.txt', 2016)
+    ccl2016 = read_file('fec/ccl/ccl_headers_2016.csv', 'fec/ccl/ccl2016.txt', 2016)
+    cn2016 = read_file('fec/cn/cn_headers_2016.csv', 'fec/cn/cn2016.txt', 2016)
+
+
     # indiv = pd.concat([indiv2014, indiv2016])
     # pas = pd.concat([pas2014, pas2016])
     # ccl = pd.concat([ccl2014, ccl2016])
     # cn = pd.concat([cn2014, cn2016])
+
+    pas_trans2010 = group_by_trans(pas2010, 'TRANS_BY_CMTE')
+    indiv_trans2010 = group_by_trans(indiv2010, 'TRANS_BY_INDIV')
+    transactions2010 = make_transactions(indiv_trans2010, pas_trans2010)
+    fec2010 = make_fec(transactions2010, ccl2010, cn2010)
+
+
+    pas_trans2012 = group_by_trans(pas2012, 'TRANS_BY_CMTE')
+    indiv_trans2012 = group_by_trans(indiv2012, 'TRANS_BY_INDIV')
+    transactions2012 = make_transactions(indiv_trans2012, pas_trans2012)
+    fec2012 = make_fec(transactions2012, ccl2012, cn2012)
 
     pas_trans2014 = group_by_trans(pas2014, 'TRANS_BY_CMTE')
     indiv_trans2014 = group_by_trans(indiv2014, 'TRANS_BY_INDIV')
@@ -121,7 +143,7 @@ def get_fec():
     transactions2016 = make_transactions(indiv_trans2016, pas_trans2016)
     fec2016 = make_fec(transactions2016, ccl2016, cn2016)
 
-    fec = pd.concat([fec2014, fec2016])
+    fec = pd.concat([fec2010, fec2012, fec2014, fec2016])
 
     return fec
 

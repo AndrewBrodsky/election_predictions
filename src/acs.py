@@ -36,7 +36,6 @@ def make_dicts():
         'Below 100 pct FPL' : 'B06012_002E',
         '100-149 FPL' : 'B06012_003E',
         'Income below poverty (White male)' : 'B17001A_003E',
-        'Income below poverty (White male)' : 'B17001A_003E',
         'Income below poverty (White female)' : 'B17001A_017E',
         'Income above poverty (White male)' : 'B17001A_032E',
         'Income above poverty (White female)' : 'B17001A_046E',
@@ -47,9 +46,9 @@ def make_dicts():
         'Transportation by CTV - below 100 pct FPL' : 'B08122_006E',
         'Transportation by CTV - 100-149 pct FPL' : 'B08122_007E',
         'Transportation by CTV - 150 FPL +' : 'B08122_008E',
-        'Transportation by CTV - below 100 pct FPL' : 'B08122_018E',
-        'Transportation by CTV - 100-149 pct FPL' : 'B08122_019E',
-        'Transportation by CTV - 150 FPL +' : 'B08122_020E'
+        'Transportation by walk - below 100 pct FPL' : 'B08122_018E',
+        'Transportation by walk- 100-149 pct FPL' : 'B08122_019E',
+        'Transportation by walk - 150 FPL +' : 'B08122_020E'
         }
 
 
