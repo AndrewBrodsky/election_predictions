@@ -3,6 +3,17 @@ import pandas as pd
 
 def make_dark_house():
 
+    '''
+    DESCRIPTION:
+    Creates Pandas dataframe with dark money total for each candidate for further analysis
+
+    INPUT:
+    None
+
+    RETURNS:
+    dark_house: Pandas Dataframe with dark money contribution totals for each House candidate
+    '''
+
     dark = pd.read_csv('open_secrets/dark_money.csv')
     dark.drop(columns = ['Name', 'State/Dist', 'For Dems', 'Against Dems',
         'For Repubs', 'AgainstRepubs'], inplace=True)

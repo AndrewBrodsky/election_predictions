@@ -97,14 +97,15 @@ def group_by_trans(filename, varname):
 
     '''
     DESCRIPTION:
-    Creates dataframe with transacation totals, grouped by committee ID
+    Creates data series with transacation totals, grouped by committee ID
 
     INPUT:
-    filename
-    varname: filename of CSV containing ontribution data
+    filename: name of dataframe to aggregate
+    varname: name of variable name to use as series index
 
     RETURNS:
-    file_trans: dataframe containing a row for each contribution
+    file_trans: Pandas data series containing a row for each committee and total
+    transaction amounts
     '''
 
     file_trans = filename.groupby(['CMTE_ID'])['TRANSACTION_AMT'].sum().astype(int)
@@ -115,6 +116,18 @@ def group_by_trans(filename, varname):
 
 def make_transactions(indiv_trans, pas_trans):
 
+    '''
+    DESCRIPTION:
+    Creates dataframe with transactions for individuals and committees
+
+    INPUT:
+    indiv_trans: data series with individual transactions
+    pas_trans: data series with committee transactions
+
+    RETURNS:
+    transactions: Pandas dataframe with total transactions for each committee
+    '''
+
     transactions = pd.concat([indiv_trans,pas_trans], axis=1)
     transactions['TOTAL_TRANS'] = transactions['TRANS_BY_INDIV'].fillna(0) + transactions['TRANS_BY_CMTE'].fillna(0)
     transactions['CMTE_ID'] = transactions.index
@@ -123,6 +136,19 @@ def make_transactions(indiv_trans, pas_trans):
 
 
 def make_fec(transactions, ccl, cn):
+
+    '''
+    DESCRIPTION:
+    Creates Pandas dataframe with transaction totals for each candidate for given year
+
+    INPUT:
+    transactions: Pandas Dataframe with total tranascations for each committee
+    ccl: Pandas Dataframe containing committee-candidate linkage data
+    cn: Pandas Dataframe containing candidate information
+
+    RETURNS:
+    fec: Pandas Dataframe with transaction totals by candidate for given year
+    '''
 
     trans_w_candID = pd.merge(transactions, ccl, on = 'CMTE_ID', how='left')
     trans_by_candID = trans_w_candID.groupby(['CAND_ID'])['TOTAL_TRANS', 'TRANS_BY_INDIV', 'TRANS_BY_CMTE'].sum().astype(int)
@@ -138,6 +164,19 @@ def make_fec(transactions, ccl, cn):
 
 
 def get_fec():
+
+    '''
+    DESCRIPTION:
+    Draws in FEC campaign contribution data from CSV and TXT files and compiles it into
+    a dataframe at the candidate level
+
+    INPUT:
+    None
+
+    RETURNS:
+    fec: Pandas Dataframe with transaction totals by candidate for further analysis
+    '''
+
     pd.set_option('display.precision', 2)
     pd.options.display.float_format = '{:,.0f}'.format
 
