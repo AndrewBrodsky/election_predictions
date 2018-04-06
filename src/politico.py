@@ -7,6 +7,20 @@ from old_votes import get_old_votes
 
 def get_house_data(years, states):
 
+    '''
+    DESCRIPTION:
+    Web scraper that pulls candidate data from Politico and converts into a dict
+    of Beautiful Soup objects
+
+    INPUT:
+    years: Year of data to scrape (int)
+    states:  list of state names to scrape
+
+    RETURNS:
+    datadict: dict with nubmer of votes, party, incumbency status, state and
+        district for every candidate
+    '''
+
     datadict = defaultdict(dict)
 
     for year in years:
@@ -26,6 +40,22 @@ def get_house_data(years, states):
 
 
 def make_politico(datadict, years, states):
+
+    '''
+    DESCRIPTION:
+    Iterates through dictionary to pull key candidate data into dataframe for
+    further analysis
+
+    INPUT:
+    datadict: dict of soup objects for each candidate
+    years:  year of data in dict
+    states: list of state names
+
+    RETURNS:
+    votes_df: Dataframe with row for each candidate and columns for state, district,
+    incumbency status, party, and vote count
+    '''
+
 
     votesdict = defaultdict(dict)
 
@@ -125,6 +155,19 @@ def parse_senate_data(dict):
 
 
 def get_politico():
+
+    '''
+    DESCRIPTION:
+    Scrapes data from Politico website, adds data from FEC Excel website,
+    and converts to dataframe for further analysis
+
+    INPUT:
+    None
+
+    RETURNS:
+    politico2: Dataframe with row for each candidate for each year 2010 through
+    and columns for state, district, incumbency status, party, and vote count
+    '''
 
     states = ['alabama','alaska','arizona','arkansas','california','colorado',
      'connecticut','delaware','florida','georgia','hawaii','idaho',

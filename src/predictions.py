@@ -1,11 +1,14 @@
 import numpy as np
 import pandas as pd
 import pickle
+import time
+
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import (RandomForestRegressor, GradientBoostingRegressor)
 from sklearn.neural_network import MLPRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import make_pipeline
+from sklearn.model_selection import GridSearchCV
 
 from politico import get_politico
 from fec import get_fec
@@ -111,15 +114,19 @@ def make_model_data(dataframe):
     model_data['DARK_AGAINST'].fillna(0, inplace = True)
     model_data = model_data.dropna(axis=0, how='any')
 
-    return model_data
+    return model_data, features
 
 
-def make_pipeline(dataframe):
+def make_splits(dataframe):
 
     X = dataframe.drop('VOTE_COUNT', axis=1)
     y = dataframe['VOTE_COUNT']
     X_train, X_test, y_train, y_test = train_test_split(X,y)
 
+    return X_train, X_test, y_train, y_test
+
+
+def other_stuff():
     np.set_printoptions(suppress=True)
     np.set_printoptions(precision=3)
 
@@ -137,11 +144,63 @@ def make_pipeline(dataframe):
     print ("RF model: ", RF_model.score(X_test, y_test), sorted(RF_zip, key=lambda x: x[1]))
     print ("\r")
 
-    GB_model = GradientBoostingRegressor()
+
     GB_model.fit(X_train, y_train)
     GB_importances = GB_model.feature_importances_
     GB_zip = zip(X, GB_importances)
     print ("GB model: ", GB_model.score(X_test, y_test), sorted(GB_zip, key=lambda x: x[1]))
+
+
+
+def Grid_Search_RFR(X_train, y_train):
+
+    estimator = RandomForestRegressor()
+
+    param_grid = {
+              "n_estimators"        : [10,50,100],
+              "criterion"           : ['mse', 'mae'],
+              "max_depth"           : [3, None],
+              "max_features"        : ["auto", "sqrt", "log2"],
+              "min_samples_split"   : [2,4,8],
+              "min_samples_leaf"    : [1, 3, 10],
+              "max_leaf_nodes"      : [None, 5],
+              "bootstrap"            : [True, False]
+              }
+
+    grid = GridSearchCV(estimator, param_grid, n_jobs=-1, cv=5)
+    tic = time.time()
+    grid.fit(X_train, y_train)
+    toc = time.time()
+    print("GridSearchCV took %.2f seconds for %d candidate parameter settings."
+      % (toc - tic, len(grid.cv_results_['params'])))
+    # report(grid.cv_results_)
+    print ("Best score:", grid.best_score_, "\n best paarms: ", grid.best_params_)
+    return grid.cv_results_, grid.best_score_, grid.best_params_
+
+
+def Grid_Search_GBR(X_train, y_train):
+
+    estimator = GradientBoostingRegressor()
+
+    param_grid = {
+              "loss"                : ['ls', 'lad', 'huber', 'quantile'],
+              "n_estimators"        : [50,100,150],
+              "max_depth"           : [1, 3, 6],
+              "min_samples_split"   : [2,4,8],
+              "min_samples_leaf"    : [1, 3, 10],
+              "subsample"           : [.5, 1],
+              "max_features"        : ["auto", "sqrt", "log2", None]
+                }
+
+    grid = GridSearchCV(estimator, param_grid, n_jobs=-1)
+    tic = time.time()
+    grid.fit(X_train, y_train)
+    toc = time.time()
+    print("GridSearchCV took %.2f seconds for %d candidate parameter settings."
+      % (toc - tic, len(grid.cv_results_['params'])))
+    # report(grid.cv_results_)
+    print ("Gradient Boosted Regressor results: \n, Best score:", grid.best_score_, "best paarms: ", grid.best_params_)
+    return grid.cv_results_, grid.best_score_, grid.best_params_
 
 
 if __name__ == "__main__":
@@ -151,6 +210,10 @@ if __name__ == "__main__":
 
     alldata = pickle.load( open( "save.p", "rb" ) )
 
-    model_data = make_model_data(alldata)
+    model_data, features = make_model_data(alldata)
 
-    make_pipeline(model_data)
+    X_train, X_test, y_train, y_test = make_splits(model_data)
+
+    RFR_results, RFR_best_score, RFR_best_params = Grid_Search_RFR(X_train, y_train)
+
+    #GBR_results, GBR_best_score, GBR_best_params = Grid_Search_GBR(X_train, y_train)

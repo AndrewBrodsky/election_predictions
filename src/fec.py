@@ -6,7 +6,20 @@ import time
 
 
 def read_indiv(headerfile, datafile, year):
-    #takes about 210 seconds to read
+
+    '''
+    DESCRIPTION:
+    Reads individual contribution data for given years and converts to dataframe
+
+    INPUT:
+    headerfile: filename of CSV containing headers for individual contributions
+    datafile: filename of CSV containing individual contribution data
+    year: year of data in datafile
+
+    RETURNS:
+    indiv: dataframe containing a row for each individual contribution
+    '''
+
     total_records = 20353316
 
     num_records = 50500500
@@ -59,13 +72,41 @@ def read_indiv(headerfile, datafile, year):
 
 
 def read_file(header_file, data_file, year):
+
+    '''
+    DESCRIPTION:
+    Reads contribution data for given year and converts to dataframe
+
+    INPUT:
+    headerfile: filename of CSV containing headers for contribution data
+    datafile: filename of CSV containing ontribution data
+    year: year of data in datafile
+
+    RETURNS:
+    file: dataframe containing a row for each contribution
+    '''
+
     headers = pd.read_csv(header_file)
     file = pd.read_csv(data_file, sep = '|', error_bad_lines = False, names = headers, encoding ='latin1')
     file['YEAR'] = year
+
     return file
 
 
 def group_by_trans(filename, varname):
+
+    '''
+    DESCRIPTION:
+    Creates dataframe with transacation totals, grouped by committee ID
+
+    INPUT:
+    filename
+    varname: filename of CSV containing ontribution data
+
+    RETURNS:
+    file_trans: dataframe containing a row for each contribution
+    '''
+
     file_trans = filename.groupby(['CMTE_ID'])['TRANSACTION_AMT'].sum().astype(int)
     file_trans.rename(varname,inplace = True)
 
