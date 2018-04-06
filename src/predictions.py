@@ -54,9 +54,24 @@ def make_alldata():
     pickle.dump( alldata, open( "save.p", "wb" ) )
 
 
+def add_late_breaking(dataframe):
+
+    dataframe['LAST_TERM_YEAR'] = dataframe['YEAR'] - 2
+    lastyear = dataframe[['YEAR', 'DEM', 'STATE_ABBR', 'DISTRICT', 'LAST_NAME']].copy()
+    lastyear.rename(columns={'DEM' : 'LAST_TERM_DEM'}, inplace = True)
+    newdf = pd.merge(dataframe, lastyear, left_on=['STATE_ABBR', 'DISTRICT', 'LAST_NAME', 'LAST_TERM_YEAR'],
+                                          right_on =['STATE_ABBR', 'DISTRICT', 'LAST_NAME', 'YEAR'],
+                                          how = 'left')
+    newdf.rename(columns={'YEAR_x': 'YEAR'}, inplace = True)
+    newdf.rename(columns={'PARTY_x': 'PARTY'}, inplace = True)
+
+    return newdf
+
+
 def make_model_data(dataframe):
 
     dataframe['MIDTERM'] = (dataframe['YEAR'] == 2010) | (dataframe['YEAR'] == 2014)
+    dataframe['SAME_PARTY'] = dataframe['DEM'] == dataframe['LAST_TERM_DEM']
 
     dataframe.rename(index=str, columns={'B01003_001E' : 'TOTAL_POP',
                                          'B06007_001E' : 'LANG_UNIV',
@@ -152,6 +167,8 @@ def other_stuff():
 
 
 
+
+
 def Grid_Search_RFR(X_train, y_train):
 
     estimator = RandomForestRegressor()
@@ -210,10 +227,12 @@ if __name__ == "__main__":
 
     alldata = pickle.load( open( "save.p", "rb" ) )
 
-    model_data, features = make_model_data(alldata)
+    late_breaking = add_late_breaking(alldata)
+
+    model_data, features = make_model_data(late_breaking)
 
     X_train, X_test, y_train, y_test = make_splits(model_data)
 
-    RFR_results, RFR_best_score, RFR_best_params = Grid_Search_RFR(X_train, y_train)
+    #RFR_results, RFR_best_score, RFR_best_params = Grid_Search_RFR(X_train, y_train)
 
     #GBR_results, GBR_best_score, GBR_best_params = Grid_Search_GBR(X_train, y_train)

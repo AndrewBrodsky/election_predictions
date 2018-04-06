@@ -10,7 +10,7 @@ def get_old_votes():
     None
 
     RETURNS:
-    old_votes: Pandas Dataframe with vote totals by candidate 
+    old_votes: Pandas Dataframe with vote totals by candidate
     '''
 
     votes_2010 = pd.read_csv('house_votes_2010.csv')
@@ -40,6 +40,6 @@ def get_old_votes():
 
     return old_votes
 
-    if __name__ == '__main__':
+if __name__ == '__main__':
 
     old_votes = get_old_votes()
