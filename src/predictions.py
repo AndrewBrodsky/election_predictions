@@ -56,14 +56,20 @@ def make_alldata():
 
 def add_late_breaking(dataframe):
 
+    data_2008 = pd.read_csv('house_votes_2008.csv')
+    data_2008['LAST_TERM_DEM'] = data_2008['PARTY'] == 'DEM'
+
+    dataframe.rename(columns={'PARTY_x': 'PARTY'}, inplace = True)
     dataframe['LAST_TERM_YEAR'] = dataframe['YEAR'] - 2
+
     lastyear = dataframe[['YEAR', 'DEM', 'STATE_ABBR', 'DISTRICT', 'LAST_NAME']].copy()
-    lastyear.rename(columns={'DEM' : 'LAST_TERM_DEM'}, inplace = True)
-    newdf = pd.merge(dataframe, lastyear, left_on=['STATE_ABBR', 'DISTRICT', 'LAST_NAME', 'LAST_TERM_YEAR'],
-                                          right_on =['STATE_ABBR', 'DISTRICT', 'LAST_NAME', 'YEAR'],
+    lastyear.rename(columns={'DEM' : 'LAST_TERM_DEM', 'YEAR': 'LAST_TERM_YEAR'}, inplace = True)
+    prev_years = pd.concat([lastyear, data_2008])
+
+    newdf = pd.merge(dataframe, prev_years, on=['STATE_ABBR', 'DISTRICT', 'LAST_NAME', 'LAST_TERM_YEAR'],
                                           how = 'left')
-    newdf.rename(columns={'YEAR_x': 'YEAR'}, inplace = True)
-    newdf.rename(columns={'PARTY_x': 'PARTY'}, inplace = True)
+
+    print ("newdf columns:", newdf.columns)
 
     return newdf
 
@@ -99,7 +105,7 @@ def make_model_data(dataframe):
     dataframe['CTV_150'] = dataframe['B08122_008E'] / dataframe['INCOME_UNIV']
     dataframe['WALK_BELOW100FPL']= dataframe['B08122_018E'] / dataframe['INCOME_UNIV']
     dataframe['WALK_100-149FPL']= dataframe[ 'B08122_019E'] / dataframe['INCOME_UNIV']
-    dataframe['WALK_100-149FPL'] = dataframe['B08122_020E'] / dataframe['INCOME_UNIV']
+    dataframe['WALK_150FPL'] = dataframe['B08122_020E'] / dataframe['INCOME_UNIV']
 
     dataframe['Below100FPL'] = dataframe['B06012_002E'] / dataframe['POVERTY_UNIV']
     dataframe['100_149FPL'] = dataframe['POVERTY_UNIV']
@@ -112,12 +118,14 @@ def make_model_data(dataframe):
     dataframe['ABOVEPOVERTYBM'] = dataframe['B17001B_032E'] / dataframe['POVERTY_UNIV']
     dataframe['ABOVEPOVERTYBF'] = dataframe['B17001B_046E'] / dataframe['POVERTY_UNIV']
 
-    features  = ['YEAR', 'DEM', 'MIDTERM', 'INCUMBENT', 'TRANS_BY_INDIV', 'TRANS_BY_CMTE',
+    print ("model data columns: ",sorted(list(dataframe.columns)))
+
+    features  = ['YEAR', 'DEM', 'MIDTERM', 'SAME_PARTY', 'INCUMBENT', 'TRANS_BY_INDIV', 'TRANS_BY_CMTE',
            'DARK_FOR', 'DARK_AGAINST', 'TOTAL_POP', 'WHITE_PCT','BLACK_PCT','AMERIND_PCT',
            'ASIAN_PCT','PACIFIC_PCT','2RACES_PCT','NOTCITIZEN_PCT', 'FOREIGNCITIZEN_PCT',
            'BORNINSTATE_PCT','BORNINUS_PCT','ENGLISH_PCT','SPANISH_PCT','NOINCOME_PCT',
            'MEDIAN_INCOME_PCT','CTV_BELOW100FPL','CTV_100-149FPL','CTV_150',
-           'WALK_BELOW100FPL','WALK_100-149FPL','WALK_100-149FPL','Below100FPL',
+           'WALK_BELOW100FPL','WALK_100-149FPL','WALK_150FPL','Below100FPL',
            '100_149FPL','POVERTYWM','POVERTYWF','ABOVEPOVERTYWM','ABOVEPOVERTYWF',
            'POVERTYBM','POVERTYBF','ABOVEPOVERTYBM','ABOVEPOVERTYBF', 'VOTE_COUNT']
 
