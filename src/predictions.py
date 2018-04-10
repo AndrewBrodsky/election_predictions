@@ -58,8 +58,9 @@ def add_late_breaking(dataframe):
 
     data_2008 = pd.read_csv('house_votes_2008.csv')
     data_2008['LAST_TERM_DEM'] = data_2008['PARTY'] == 'DEM'
+    data_2008.drop(columns = 'PARTY', inplace= True)
+    #dataframe.drop(columns = 'PARTY', inplace= True)
 
-    dataframe.rename(columns={'PARTY_x': 'PARTY'}, inplace = True)
     dataframe['LAST_TERM_YEAR'] = dataframe['YEAR'] - 2
 
     lastyear = dataframe[['YEAR', 'DEM', 'STATE_ABBR', 'DISTRICT', 'LAST_NAME']].copy()
@@ -68,8 +69,6 @@ def add_late_breaking(dataframe):
 
     newdf = pd.merge(dataframe, prev_years, on=['STATE_ABBR', 'DISTRICT', 'LAST_NAME', 'LAST_TERM_YEAR'],
                                           how = 'left')
-
-    print ("newdf columns:", newdf.columns)
 
     return newdf
 
@@ -93,22 +92,25 @@ def make_model_data(dataframe):
     dataframe['NOTCITIZEN_PCT'] = dataframe['B05001_006E'] / dataframe['TOTAL_POP']
     dataframe['FOREIGNCITIZEN_PCT'] = dataframe['B05001_005E'] / dataframe['TOTAL_POP']
     dataframe['BORNINSTATE_PCT'] = dataframe['B05002_003E'] / dataframe['TOTAL_POP']
-    dataframe['BORNINUS_PCT'] = dataframe['B05012_001E'] / dataframe['TOTAL_POP']
+    #dataframe['BORNINUS_PCT'] = dataframe['B05012_002E'] / dataframe['TOTAL_POP']
 
     dataframe['ENGLISH_PCT'] = dataframe['B06007_002E'] / dataframe['LANG_UNIV']
     dataframe['SPANISH_PCT'] = dataframe['B06007_003E'] / dataframe['LANG_UNIV']
 
-    dataframe['NOINCOME_PCT'] = dataframe['B06007_002E'] / dataframe['INCOME_UNIV']
-    dataframe['MEDIAN_INCOME_PCT'] = dataframe['B06007_003E'] / dataframe['INCOME_UNIV']
-    dataframe['CTV_BELOW100FPL'] = dataframe['B08122_006E'] / dataframe['INCOME_UNIV']
-    dataframe['CTV_100-149FPL'] = dataframe['B08122_007E'] / dataframe['INCOME_UNIV']
-    dataframe['CTV_150'] = dataframe['B08122_008E'] / dataframe['INCOME_UNIV']
-    dataframe['WALK_BELOW100FPL']= dataframe['B08122_018E'] / dataframe['INCOME_UNIV']
-    dataframe['WALK_100-149FPL']= dataframe[ 'B08122_019E'] / dataframe['INCOME_UNIV']
+    dataframe['NOINCOME_PCT'] = dataframe['B06010_002E'] / dataframe['INCOME_UNIV']
+    dataframe['MEDIAN_INCOME'] = dataframe['B06011_001E']
+
     dataframe['WALK_150FPL'] = dataframe['B08122_020E'] / dataframe['INCOME_UNIV']
 
     dataframe['Below100FPL'] = dataframe['B06012_002E'] / dataframe['POVERTY_UNIV']
-    dataframe['100_149FPL'] = dataframe['POVERTY_UNIV']
+    dataframe['100_149FPL'] = dataframe['B06012_003E'] / dataframe['POVERTY_UNIV']
+
+    dataframe['CTV_BELOW100FPL'] = dataframe['B08122_006E'] / dataframe['B06012_002E']
+    dataframe['CTV_100-149FPL'] = dataframe['B08122_007E'] / dataframe['B06012_003E']
+
+    dataframe['WALK_BELOW100FPL']= dataframe['B08122_018E'] / dataframe['B06012_002E']
+    dataframe['WALK_100-149FPL']= dataframe[ 'B08122_019E'] / dataframe['B06012_003E']
+
     dataframe['POVERTYWM'] = dataframe['B17001A_003E'] / dataframe['POVERTY_UNIV']
     dataframe['POVERTYWF'] = dataframe['B17001A_017E'] / dataframe['POVERTY_UNIV']
     dataframe['ABOVEPOVERTYWM'] = dataframe['B17001A_032E'] / dataframe['POVERTY_UNIV']
@@ -118,14 +120,12 @@ def make_model_data(dataframe):
     dataframe['ABOVEPOVERTYBM'] = dataframe['B17001B_032E'] / dataframe['POVERTY_UNIV']
     dataframe['ABOVEPOVERTYBF'] = dataframe['B17001B_046E'] / dataframe['POVERTY_UNIV']
 
-    print ("model data columns: ",sorted(list(dataframe.columns)))
-
     features  = ['YEAR', 'DEM', 'MIDTERM', 'SAME_PARTY', 'INCUMBENT', 'TRANS_BY_INDIV', 'TRANS_BY_CMTE',
            'DARK_FOR', 'DARK_AGAINST', 'TOTAL_POP', 'WHITE_PCT','BLACK_PCT','AMERIND_PCT',
            'ASIAN_PCT','PACIFIC_PCT','2RACES_PCT','NOTCITIZEN_PCT', 'FOREIGNCITIZEN_PCT',
-           'BORNINSTATE_PCT','BORNINUS_PCT','ENGLISH_PCT','SPANISH_PCT','NOINCOME_PCT',
-           'MEDIAN_INCOME_PCT','CTV_BELOW100FPL','CTV_100-149FPL','CTV_150',
-           'WALK_BELOW100FPL','WALK_100-149FPL','WALK_150FPL','Below100FPL',
+           'BORNINSTATE_PCT', 'ENGLISH_PCT','SPANISH_PCT','NOINCOME_PCT',
+           'MEDIAN_INCOME','CTV_BELOW100FPL','CTV_100-149FPL',
+           'WALK_BELOW100FPL','WALK_100-149FPL','Below100FPL',
            '100_149FPL','POVERTYWM','POVERTYWF','ABOVEPOVERTYWM','ABOVEPOVERTYWF',
            'POVERTYBM','POVERTYBF','ABOVEPOVERTYBM','ABOVEPOVERTYBF', 'VOTE_COUNT']
 
@@ -140,6 +140,11 @@ def make_model_data(dataframe):
     return model_data, features
 
 
+def make_bellwether(dataframe):
+    bellwether = dataframe(['STATE_ABBR' == 'OH'] * [DISTRICT == 4])
+
+
+
 def make_splits(dataframe):
 
     X = dataframe.drop('VOTE_COUNT', axis=1)
@@ -149,37 +154,34 @@ def make_splits(dataframe):
     return X_train, X_test, y_train, y_test
 
 
-def other_stuff():
-    np.set_printoptions(suppress=True)
-    np.set_printoptions(precision=3)
-
-    linear_model = LinearRegression()
-    linear_model.fit(X_train, y_train)
-    lin_pred = linear_model.predict(X_test)
-    lin_zip= zip(X,linear_model.coef_)
-    print ("Linear model: ", linear_model.score (X_test, y_test), sorted(lin_zip, key=lambda x: x[1]))
-    print ("\r")
-
-    RF_model = RandomForestRegressor()
-    RF_model.fit(X_train, y_train)
-    RF_importances = RF_model.feature_importances_
-    RF_zip = zip(X, RF_importances)
-    print ("RF model: ", RF_model.score(X_test, y_test), sorted(RF_zip, key=lambda x: x[1]))
-    print ("\r")
-
-
-    GB_model.fit(X_train, y_train)
-    GB_importances = GB_model.feature_importances_
-    GB_zip = zip(X, GB_importances)
-    print ("GB model: ", GB_model.score(X_test, y_test), sorted(GB_zip, key=lambda x: x[1]))
+#DELETE ALL THIS
+# def other_stuff():
+#     np.set_printoptions(suppress=True)
+#     np.set_printoptions(precision=3)
+#
+#     linear_model = LinearRegression()
+#     linear_model.fit(X_train, y_train)
+#     lin_pred = linear_model.predict(X_test)
+#     lin_zip= zip(X,linear_model.coef_)
+#     print ("Linear model: ", linear_model.score (X_test, y_test), sorted(lin_zip, key=lambda x: x[1]))
+#     print ("\r")
 
 
 
+def Run_Grid_Search(estimator, param_grid, X, y):
+
+    grid = GridSearchCV(estimator, param_grid, n_jobs=-1, cv=3)
+    tic = time.time()
+    grid.fit(X, y)
+    toc = time.time()
+    print("GridSearchCV took %.2f seconds for %d candidate parameter settings."
+      % (toc - tic, len(grid.cv_results_['params'])))
+    # report(grid.cv_results_)
+    print ("Gradient Boosted Regressor results: \n, Best score:", grid.best_score_, "best params: ", grid.best_params_)
+    return grid.cv_results_, grid.best_score_, grid.best_params_
 
 
-def Grid_Search_RFR(X_train, y_train):
-
-    estimator = RandomForestRegressor()
+def grid_searches(X, y):
 
     param_grid = {
               "n_estimators"        : [10,50,100],
@@ -192,20 +194,10 @@ def Grid_Search_RFR(X_train, y_train):
               "bootstrap"            : [True, False]
               }
 
-    grid = GridSearchCV(estimator, param_grid, n_jobs=-1, cv=5)
-    tic = time.time()
-    grid.fit(X_train, y_train)
-    toc = time.time()
-    print("GridSearchCV took %.2f seconds for %d candidate parameter settings."
-      % (toc - tic, len(grid.cv_results_['params'])))
-    # report(grid.cv_results_)
-    print ("Best score:", grid.best_score_, "\n best paarms: ", grid.best_params_)
-    return grid.cv_results_, grid.best_score_, grid.best_params_
+    estimator = RandomForestRegressor()
 
-
-def Grid_Search_GBR(X_train, y_train):
-
-    estimator = GradientBoostingRegressor()
+    RFR_results, RFR_best_score, RFR_best_params = Run_Grid_Search(
+            estimator, param_grid, X_train, y_train)
 
     param_grid = {
               "loss"                : ['ls', 'lad', 'huber', 'quantile'],
@@ -215,17 +207,46 @@ def Grid_Search_GBR(X_train, y_train):
               "min_samples_leaf"    : [1, 3, 10],
               "subsample"           : [.5, 1],
               "max_features"        : ["auto", "sqrt", "log2", None]
-                }
+              }
 
-    grid = GridSearchCV(estimator, param_grid, n_jobs=-1)
-    tic = time.time()
-    grid.fit(X_train, y_train)
-    toc = time.time()
-    print("GridSearchCV took %.2f seconds for %d candidate parameter settings."
-      % (toc - tic, len(grid.cv_results_['params'])))
-    # report(grid.cv_results_)
-    print ("Gradient Boosted Regressor results: \n, Best score:", grid.best_score_, "best paarms: ", grid.best_params_)
-    return grid.cv_results_, grid.best_score_, grid.best_params_
+    estimator = GradientBoostingRegressor()
+
+    GBR_results, GBR_best_score, GBR_best_params = Run_Grid_Search(
+            estimator, param_grid, X_train, y_train)
+
+    # Random Forest Results:
+    # Best score: 0.7418130304838402
+    # best params:  {'bootstrap': False, 'criterion': 'mae', 'max_depth': None, 'max_features': 'sqrt',
+    #'max_leaf_nodes': None, 'min_samples_leaf': 1, 'min_samples_split': 8, 'n_estimators': 100}
+    # GridSearchCV took 961.49 seconds for 2592 candidate parameter settings.
+    #
+    # Gradient Boosted Regressor results:
+    # Best score: 0.782590603703688
+    # best params:  {'loss': 'huber', 'max_depth': 6, 'max_features': None, 'min_samples_leaf': 10,
+    #'min_samples_split': 4, 'n_estimators': 150, 'subsample': 1}
+
+
+def GBR(X_train, X_test, y_train, y_test):
+
+    best_params =  {
+        'loss': 'huber',
+        'max_depth': 6,
+        'max_features': None,
+        'min_samples_leaf': 10,
+        'min_samples_split': 4,
+        'n_estimators': 150,
+        'subsample': 1
+        }
+
+    pd.options.display.float_format = '{:,.3f}'.format
+    
+
+    GB_model = GradientBoostingRegressor(**best_params)
+    GB_model.fit(X_train, y_train)
+    GB_importances = GB_model.feature_importances_
+    GB_zip = zip(X_train, GB_importances)
+    print ("GB model score: ", GB_model.score(X_test, y_test))
+    print ("\n GB model importances: ", sorted(GB_zip, key=lambda x: x[1]))
 
 
 if __name__ == "__main__":
@@ -239,8 +260,14 @@ if __name__ == "__main__":
 
     model_data, features = make_model_data(late_breaking)
 
+    bellwether = make_bellwether(late_breaking)
+
+    writer = pd.ExcelWriter('model_data.xlsx')
+    model_data.to_excel(writer,'Sheet1')
+    writer.save()
+
     X_train, X_test, y_train, y_test = make_splits(model_data)
 
-    #RFR_results, RFR_best_score, RFR_best_params = Grid_Search_RFR(X_train, y_train)
+    grid_searches(X_train, y_train)
 
-    #GBR_results, GBR_best_score, GBR_best_params = Grid_Search_GBR(X_train, y_train)
+    GBR(X_train, X_test, y_train, y_test)
