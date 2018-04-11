@@ -2,14 +2,11 @@
 
 Determining the factors which contribute to U.S. elections is important for political scientists and political campaigns. Models that predict election outcomes have typically found that polls are the strongest predictor of election results <sup>1</sup>. However, while polls reflect the current state of a race, they do not uncover the mechanisms or causal relationships at work.
 
-This project uses machine learning to predict candidates' vote totals for U.S. House of Representatives elections, based on district demographics, campaign funding, and candidate party.
+This project uses machine learning to predict the relationship between campaign contributions and candidates' vote totals for U.S. House of Representatives elections, taking into account district and candidate characteristics.
 
-<img src="https://upload.wikimedia.org/wikipedia/commons/3/30/1988_US_House_Election_Map.png"><i>Results of U.S. House of Representatives Election, 2016</image></i>
+<img src="https://images.dailykos.com/images/359021/original/2016_House_Margin_by_Party.png?1485791254"><i>Source: Daily Kos</image></i>
 
-<add source and description>
-<more about the work you did for the code, rather than results -- the difficult thing you got around>
-
-### <span style="color:navy">Background</span>
+### Background
 
 Academic research has used national economic and political indicators such as GNP per capita growth and Presidential popularity to predict House elections<sup>2</sup>
 
@@ -20,34 +17,26 @@ Many prediction models use regression models, particularly regression discontinu
 ### Data
 
 Data for the project are drawn from four publicly available sources, including:
-  * <a href = https://www.census.gov/programs-surveys/acs/><b>American Community Survey</b></a>: demographic and economic data for each U.S. House district in 2014 and 2016.
+  * <a href = https://www.census.gov/programs-surveys/acs/><b>American Community Survey</b></a>: demographic and economic data for each U.S. House district in 2010, 2012, 2014 and 2016.
   * <a href=politico.com><b>Politico</b></a>: number of votes and party per candidate for House elections in 2014 and 2016.
   * <a href="fec.gov"><b>Federal Election Commission</b></a>:
-  amount of money contributed to each candidate and each committee in 2012, 2014, and 2016
-  * <a href="www.opensecrets.org"><b>Open Secrets</b></a>: "Dark money" spent for or against each candiate during the 2014 and 2016 election cycles
+  amount of money contributed to each candidate and each committee in 2012, 2014, and 2016, and House election results in 2010 and 2012.
+  * <a href="www.opensecrets.org"><b>Open Secrets</b></a>: "Dark money" spent for or against each candidate during the 2014 and 2016 election cycles
 
-### Methodology
+### Process and Methodology
 
-<remove description of each model>
+Converting and combining the data into a form useful for machine learning analyses required extensive manipulation, including scraping data from websites as necessary; removing outliers and problematic data;
+and creating and standardizing variables used to match files.
 
-Machine learning models often yield impressive predictive results, especially with very complex or high-dimensional data. Because this analysis uses complex data with many predictor variables, several machine learning algorithms were developed, including Random Forests, Gradient Boosted Trees, Artificial Neural Nets, as well as simple linear regression.
+The data were ultimately combined into a single data file with a row for each candidate in each year, and columns representing various categories of campaign contributions, district characteristics, and candidate characteristics. Several machine learning algorithms were developed to predict vote counts based on these features, including a random forest model, a gradient boosted regressor, and a simple linear regression.  
 
-#### Linear Regression Analysis
-The linear regression predicts Vote Count based on a series of variables, including [variables will be added here].
+The gradient boosted regressor yielded the best results after a grid search with cross-validation was used to optimize model parameters.  This model yielded an R>sup>2</sup> score of .82 when validated on a test set, and was able to quantify the degree to which each feature in the final model contributed to the overall vote prediction for each candidate.
 
-#### Random Forest Analysis
-Random Forests are appropriate for evaluating high-dimensional data and retain the ability to interpret results, which make them valuable in understanding the mechanics underlying voting patterns. The Random Forest analysis predicts Vote Count based on variables including [variables here]. The final Random Forest model [include final vars here]
-
-#### Gradient Boosting Analysis
-Gradient boosted trees can outperform Random Forests in certain circumstances and can be better at reducing both bias and variance in the model.  The Gradient Boosting model predicts Vote Count using the same set of initial variables as the Random Forest analysis. The final model used [include final vars here]
-
-#### Neural Net
-Will add here if there is time to complete the Neural Net.
 
 ### Code
 
-Code for the project is organized into five main module: one for each of the four data sources, and one to combine the data together and run the machine learning algorithms.
-* <a href = "https://github.com/AndrewBrodsky/election_predictions/blob/master/predictions.py"> <b>predictions.py</b></a> draws in data from each of the submodules and combines it into one master file.  The module also runs the data through a pipeline which insantiates, fits, and predicts each of the machine learning models (linear regression, Random Forest, boosted trees, and neural net.)
+Code for the project is organized into five main modules: one for each of the four data sources, and one to combine the data together and run the machine learning algorithms.
+* <a href = "https://github.com/AndrewBrodsky/election_predictions/blob/master/predictions.py"> <b>predictions.py</b></a> draws in data from each of the submodules and combines it into one master file.  The module also runs the data through a pipeline which creates new variables suitable for further modeling, and runs a Grid Search to optimize hyperparameters for random forest and gradient boosted regressor models. Finally, the code predicts vote counts based on data for "bellwether" districts (those whose results are particularly informative in understanding the national political climate).
 * <a href = "https://github.com/AndrewBrodsky/election_predictions/blob/master/politico.py"> <b>politico.py</b></a> scrapes the Politico website for data from the 2014 and 2016 U.S. House of Representatives elections, including state and district, number of votes, party, and incumbency status for each candidate.
 * <a href = "https://github.com/AndrewBrodsky/election_predictions/blob/master/acs.py"> <b>acs.py</b></a> draws on the CensusData api to draw data from the ACS website for each Congressional District and combine it into a single dataframe.
 * <a href = "https://github.com/AndrewBrodsky/election_predictions/blob/master/fec.py"> <b>fec.py</b></a> draws in data files downloaded from the FEC, including individual and committee contributions and candidate-committee linkage files. It then creates a master file which aggregates the total campaign contributions for each candidate.
