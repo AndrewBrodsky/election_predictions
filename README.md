@@ -35,7 +35,16 @@ The gradient boosted regressor yielded the best results after a grid search with
 
 ### Results Example: Bellwether District
 
+California Congressional District 45 has been rated as one of the most competitive districts in the 2018 election cycle. The model can be used to predict the outcome of this election based on various campaign funding scenarios. The results indicate that higher or lower levels of funding are likely to alter the winner of the race.
 
+[map of district]
+
+#### Vote Totals for Campaign Funding Scenarios
+
+                            Campaign Funding Level
+                            Low   Average     High
+Republican (incumbent) 138,412     158,222   159,932 <br>
+Democrat               162,580     154,081  155,691
 
 
 ### Code
