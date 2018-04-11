@@ -140,9 +140,24 @@ def make_model_data(dataframe):
     return model_data, features
 
 
-def make_bellwether(dataframe):
-    bellwether = dataframe(['STATE_ABBR' == 'OH'] * [DISTRICT == 4])
+def make_bellwether(dataframe, state, dist):
+    bellwether = dataframe[(dataframe['STATE_ABBR'] == state) & (dataframe['DISTRICT'] == dist)]
+    filename_xls = str('bellwether' + state + str(dist) + '.xlsx')
+    writer = pd.ExcelWriter(filename_xls)
+    bellwether.to_excel(writer,'Sheet1')
+    writer.save()
 
+    #Data on current candidates and funding are manually added to Excel file
+
+
+
+    filename_csv = str('bellwether' + state + str(dist) + '.csv')
+    print (filename_csv)
+
+    bellwether = pd.read_csv(filename_csv)
+    bellwether = bellwether.drop('VOTE_COUNT', axis=1)
+
+    return bellwether
 
 
 def make_splits(dataframe):
@@ -238,8 +253,8 @@ def GBR(X_train, X_test, y_train, y_test):
         'subsample': 1
         }
 
-    pd.options.display.float_format = '{:,.3f}'.format
-    
+
+
 
     GB_model = GradientBoostingRegressor(**best_params)
     GB_model.fit(X_train, y_train)
@@ -248,8 +263,13 @@ def GBR(X_train, X_test, y_train, y_test):
     print ("GB model score: ", GB_model.score(X_test, y_test))
     print ("\n GB model importances: ", sorted(GB_zip, key=lambda x: x[1]))
 
+    return GB_model
+
 
 if __name__ == "__main__":
+
+    pd.options.display.float_format = '{:,.3f}'.format
+    pd.set_option('display.max_columns', 500)
 
     #Comment next line if pickle file already created
     #make_alldata()
@@ -260,7 +280,9 @@ if __name__ == "__main__":
 
     model_data, features = make_model_data(late_breaking)
 
-    bellwether = make_bellwether(late_breaking)
+    bellwether_CA45 = make_bellwether(late_breaking, 'CA', 45)
+    model_data_CA45, _ = make_model_data(bellwether_CA45)
+
 
     writer = pd.ExcelWriter('model_data.xlsx')
     model_data.to_excel(writer,'Sheet1')
@@ -268,6 +290,9 @@ if __name__ == "__main__":
 
     X_train, X_test, y_train, y_test = make_splits(model_data)
 
-    grid_searches(X_train, y_train)
 
-    GBR(X_train, X_test, y_train, y_test)
+    #grid_searches(X_train, y_train)
+
+    GB_model = GBR(X_train, X_test, y_train, y_test)
+
+    CA45_votes = GB_model.predict(model_data_CA45)
