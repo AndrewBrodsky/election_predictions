@@ -8,7 +8,7 @@ This project uses machine learning to predict the relationship between campaign 
 
 ### Background
 
-Academic research has used national economic and political indicators such as GNP per capita growth and Presidential popularity to predict House elections<sup>2</sup>
+Academic research has used national economic and political indicators such as GNP per capita growth and Presidential popularity to predict U.S. House elections.<sup>2</sup>
 
 Popular news sites such as  <a href = https://projects.fivethirtyeight.com/congress-generic-ballot-polls/> FiveThirtyEight </a>, <a href = https://www.politico.com/news/2018-house-elections>Politico</a> and <a href = https://www.realclearpolitics.com/epolls/writeup/battle_for_the_house_of_representatives-51.html>Real Clear Politics</a> offered election predictions during recent electoral cycles. However, these models are primarily based on polls results. The more sophisticated of these models use some additional data. For example, FiveThirtyEight's <a href = https://projects.fivethirtyeight.com/2016-election-forecast/senate/>2016 Senate model </a>uses a probabilistic, model that incorporates each candidate's ideology and state fundamentals including generic approval ratings and fundraising totals.
 
@@ -30,7 +30,12 @@ and creating and standardizing variables used to match files.
 
 The data were ultimately combined into a single data file with a row for each candidate in each year, and columns representing various categories of campaign contributions, district characteristics, and candidate characteristics. Several machine learning algorithms were developed to predict vote counts based on these features, including a random forest model, a gradient boosted regressor, and a simple linear regression.  
 
-The gradient boosted regressor yielded the best results after a grid search with cross-validation was used to optimize model parameters.  This model yielded an R>sup>2</sup> score of .82 when validated on a test set, and was able to quantify the degree to which each feature in the final model contributed to the overall vote prediction for each candidate.
+The gradient boosted regressor yielded the best results after a grid search with cross-validation was used to optimize model parameters.  This model yielded an R<sup>2</sup> score of .82 when validated on a test set, and was able to quantify the degree to which each feature in the final model contributed to the overall vote prediction for each candidate.
+
+
+### Results Example: Bellwether District
+
+
 
 
 ### Code

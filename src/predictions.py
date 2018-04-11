@@ -223,10 +223,7 @@ def make_bellwether(dataframe, state, dist):
 
     #Data on current candidates and funding are manually added to Excel file
 
-
-
     filename_csv = str('bellwether' + state + str(dist) + '.csv')
-    print (filename_csv)
 
     bellwether = pd.read_csv(filename_csv)
     bellwether = bellwether.drop('VOTE_COUNT', axis=1)
@@ -332,16 +329,33 @@ def grid_searches(X, y):
     GBR_results, GBR_best_score, GBR_best_params = Run_Grid_Search(
             estimator, param_grid, X_train, y_train)
 
-    # Random Forest Results:
-    # Best score: 0.7418130304838402
-    # best params:  {'bootstrap': False, 'criterion': 'mae', 'max_depth': None, 'max_features': 'sqrt',
-    #'max_leaf_nodes': None, 'min_samples_leaf': 1, 'min_samples_split': 8, 'n_estimators': 100}
-    # GridSearchCV took 961.49 seconds for 2592 candidate parameter settings.
-    #
-    # Gradient Boosted Regressor results:
-    # Best score: 0.782590603703688
-    # best params:  {'loss': 'huber', 'max_depth': 6, 'max_features': None, 'min_samples_leaf': 10,
-    #'min_samples_split': 4, 'n_estimators': 150, 'subsample': 1}
+    """
+    Random Forest Results:
+    Best score: 0.7418130304838402
+    best params:  {'bootstrap': False, 'criterion': 'mae', 'max_depth': None, 'max_features': 'sqrt',
+    'max_leaf_nodes': None, 'min_samples_leaf': 1, 'min_samples_split': 8, 'n_estimators': 100}
+    GridSearchCV took 961.49 seconds for 2592 candidate parameter settings.
+
+    Gradient Boosted Regressor results:
+    Best score: 0.782590603703688
+    best params:  {'loss': 'huber', 'max_depth': 6, 'max_features': None, 'min_samples_leaf': 10,
+    'min_samples_split': 4, 'n_estimators': 150, 'subsample': 1}
+    """
+
+
+def bar_plot(feature_names, feature_importances):
+    y_ind = np.arange(9, -1, -1)  # 9 to 0
+    fig = plt.figure(figsize=(8, 8))
+    plt.barh(y_ind, feature_importances, height=0.3, align='center')
+    plt.ylim(y_ind.min() + 0.5, y_ind.max() + 0.5)
+    plt.yticks(y_ind, feature_names)
+    plt.xlabel('Relative feature importances')
+    plt.ylabel('Features')
+    figname = '3_1_feature_importance_bar_plot.png'
+    plt.tight_layout()
+    plt.savefig(figname, dpi=100)
+    plt.close()
+    print ("\n1) {0} plot saved.".format(figname))
 
 
 def GBR(X_train, X_test, y_train, y_test):
@@ -374,10 +388,16 @@ def GBR(X_train, X_test, y_train, y_test):
     GB_model.fit(X_train, y_train)
     GB_importances = GB_model.feature_importances_
     GB_zip = zip(X_train, GB_importances)
-    print ("GB model score: ", GB_model.score(X_test, y_test))
-    print ("\n GB model importances: ", sorted(GB_zip, key=lambda x: x[1]))
 
-    return GB_model
+    sorted_zip = sorted(GB_zip, key=lambda x: x[1], reverse=True)
+    print ("GB model score: ", GB_model.score(X_test, y_test))
+    print ("\n GB model importances: ", sorted_zip )
+
+    feature_names = [[x[0] for x in sorted_zip[:10]]]
+    feature_importances = [[x[0] for x in sorted_zip[:10]]]
+    make_plot(feature names, feature importances)
+
+    return GB_model, sorted_zip
 
 
 if __name__ == "__main__":
@@ -406,6 +426,6 @@ if __name__ == "__main__":
     #takes 30-45 minutes
     #grid_searches(X_train, y_train)
 
-    GB_model = GBR(X_train, X_test, y_train, y_test)
+    GB_model, sorted_zip = GBR(X_train, X_test, y_train, y_test)
 
     CA45_votes = GB_model.predict(model_data_CA45)
