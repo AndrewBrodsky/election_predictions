@@ -19,6 +19,20 @@ import api_keys
 
 def join_files(politico, fec, acs, dark_house):
 
+    '''
+    DESCRIPTION:
+    Joins data from politico, fed, acs, and open secrets files together
+
+    INPUT:
+    politico: Pandas dataframe of vote count data
+    fec: Pandas dataframe with individual and committee contributions for each candidate
+    acs: Pandas dataframe with district characteristics
+    dark_house: Pandas dataframe with dark money contributions for and against each candidate
+
+    RETURNS:
+    alldata3: Pandas dataframe containing data from all sources by candidate
+    '''
+
     alldata1 = pd.merge(politico, fec, on = ['YEAR', 'STATE_ABBR', 'DISTRICT', 'LAST_NAME'],
               how='left')
 
@@ -32,6 +46,17 @@ def join_files(politico, fec, acs, dark_house):
 
 
 def import_data(census_key):
+
+    '''
+    DESCRIPTION:
+    Imports data using the politico, fec, acs and open secrets modules
+
+    INPUT:
+    census_key: API key for accessing the CensusDatas database
+
+    RETURNS:
+    alldata: Pandas dataframe containing data from all sources by candidate
+    '''
 
     politico = get_politico()
     print ("Politico data imported")
@@ -49,12 +74,34 @@ def import_data(census_key):
 
 def make_alldata():
 
+    '''
+    DESCRIPTION:
+    Creates datafrmae will all data for each module and saves to picle file
+
+    INPUT:
+    None
+
+    RETURNS:
+    Saves pickle file containing alldata dataframe
+    '''
+
     census_key = api_keys.census_api
     alldata = import_data(census_key)
     pickle.dump( alldata, open( "save.p", "wb" ) )
 
 
 def add_late_breaking(dataframe):
+
+    '''
+    DESCRIPTION:
+    Adds in additional data, including vote totals from 2010 and 2012
+
+    INPUT:
+    dataframe: Pandas dataframe containing alldata file
+
+    RETURNS:
+    newdf: Pandas dataframe with complete dataset, includign 2010 and 2012 data
+    '''
 
     data_2008 = pd.read_csv('house_votes_2008.csv')
     data_2008['LAST_TERM_DEM'] = data_2008['PARTY'] == 'DEM'
@@ -74,6 +121,18 @@ def add_late_breaking(dataframe):
 
 
 def make_model_data(dataframe):
+
+    '''
+    DESCRIPTION:
+    Creates new features for further analysis
+
+    INPUT:
+    dataframe: Pandas dataframe containing all data from all modules
+
+    RETURNS:
+    model_data: Pandas dataframe containing set of features and vote totals for ensemble methods
+    features: list of features for use in ensemble modeling
+    '''
 
     dataframe['MIDTERM'] = (dataframe['YEAR'] == 2010) | (dataframe['YEAR'] == 2014)
     dataframe['SAME_PARTY'] = dataframe['DEM'] == dataframe['LAST_TERM_DEM']
@@ -141,6 +200,21 @@ def make_model_data(dataframe):
 
 
 def make_bellwether(dataframe, state, dist):
+
+    '''
+    DESCRIPTION:
+    Web scraper that pulls candidate data from Politico and converts into a dict
+    of Beautiful Soup objects
+
+    INPUT:
+    years: Year of data to scrape (int)
+    states:  list of state names to scrape
+
+    RETURNS:
+    datadict: dict with nubmer of votes, party, incumbency status, state and
+        district for every candidate
+    '''
+
     bellwether = dataframe[(dataframe['STATE_ABBR'] == state) & (dataframe['DISTRICT'] == dist)]
     filename_xls = str('bellwether' + state + str(dist) + '.xlsx')
     writer = pd.ExcelWriter(filename_xls)
@@ -162,6 +236,20 @@ def make_bellwether(dataframe, state, dist):
 
 def make_splits(dataframe):
 
+    '''
+    DESCRIPTION:
+    Creates training and test sets from dataframe
+
+    INPUT:
+    dataframe: Pandas dataframe with model-ready data
+
+    RETURNS:
+    X_train: Pandas dataframe with features for model training
+    X_test: Pandas dataframe with features for model testing
+    y_train: Pandas data series with outcome variable (vote count) for model training
+    y_test: Pandas data series with outcome variable (vote count) for model training
+    '''
+
     X = dataframe.drop('VOTE_COUNT', axis=1)
     y = dataframe['VOTE_COUNT']
     X_train, X_test, y_train, y_test = train_test_split(X,y)
@@ -169,21 +257,23 @@ def make_splits(dataframe):
     return X_train, X_test, y_train, y_test
 
 
-#DELETE ALL THIS
-# def other_stuff():
-#     np.set_printoptions(suppress=True)
-#     np.set_printoptions(precision=3)
-#
-#     linear_model = LinearRegression()
-#     linear_model.fit(X_train, y_train)
-#     lin_pred = linear_model.predict(X_test)
-#     lin_zip= zip(X,linear_model.coef_)
-#     print ("Linear model: ", linear_model.score (X_test, y_test), sorted(lin_zip, key=lambda x: x[1]))
-#     print ("\r")
-
-
-
 def Run_Grid_Search(estimator, param_grid, X, y):
+
+    '''
+    DESCRIPTION:
+    Performs a grid search and returns resuts
+
+    INPUT:
+    estimator: Estimator object used for analysis
+    param_grid: list of parameters to be used for grid search
+    X: Pandas dataframe containing features
+    y: Pandas data series containing outcome variable
+
+    RETURNS:
+    grid.cv_results: results of grid search
+    grid.best_score_: R2 value for best grid search result
+    grid.best_params_: dictionary of best parameters
+    '''
 
     grid = GridSearchCV(estimator, param_grid, n_jobs=-1, cv=3)
     tic = time.time()
@@ -197,6 +287,19 @@ def Run_Grid_Search(estimator, param_grid, X, y):
 
 
 def grid_searches(X, y):
+
+    '''
+    DESCRIPTION:
+    Runs a grid search with selected parameters for random forest and gradient boosted regressor
+
+    INPUT:
+    X: Pandas dataframe containing features
+    y: Pandas data series containing outcome variable
+
+    RETURNS:
+    None
+    '''
+
 
     param_grid = {
               "n_estimators"        : [10,50,100],
@@ -243,6 +346,20 @@ def grid_searches(X, y):
 
 def GBR(X_train, X_test, y_train, y_test):
 
+    '''
+    DESCRIPTION:
+    Runs Gradient Boosted Regressor on training set and reports score on test set
+
+    INPUT:
+    X_train: Pandas dataframe with features for model training
+    X_test: Pandas dataframe with features for model testing
+    y_train: Pandas data series with outcome variable (vote count) for model training
+    y_test: Pandas data series with outcome variable (vote count) for model training
+
+    RETURNS:
+    GB_model: Object containing fitted Gradient Boosted Regressor model
+    '''
+
     best_params =  {
         'loss': 'huber',
         'max_depth': 6,
@@ -252,9 +369,6 @@ def GBR(X_train, X_test, y_train, y_test):
         'n_estimators': 150,
         'subsample': 1
         }
-
-
-
 
     GB_model = GradientBoostingRegressor(**best_params)
     GB_model.fit(X_train, y_train)
@@ -283,14 +397,13 @@ if __name__ == "__main__":
     bellwether_CA45 = make_bellwether(late_breaking, 'CA', 45)
     model_data_CA45, _ = make_model_data(bellwether_CA45)
 
-
     writer = pd.ExcelWriter('model_data.xlsx')
     model_data.to_excel(writer,'Sheet1')
     writer.save()
 
     X_train, X_test, y_train, y_test = make_splits(model_data)
 
-
+    #takes 30-45 minutes
     #grid_searches(X_train, y_train)
 
     GB_model = GBR(X_train, X_test, y_train, y_test)
