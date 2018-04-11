@@ -39,12 +39,12 @@ California Congressional District 45 has been rated as one of the most competiti
 
 [map of district]
 
-#### Vote Totals for Campaign Funding Scenarios
+#### Vote Totals for Campaign Funding Scenarios in CA-45
 
                             Campaign Funding Level
-                            Low   Average     High
-Republican (incumbent) 138,412     158,222   159,932 <br>
-Democrat               162,580     154,081  155,691
+                            Low         Average    High
+    Republican (incumbent) 138,412     158,222   159,932
+    Democrat               162,580     154,081   155,691
 
 
 ### Code
